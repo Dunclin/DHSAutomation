@@ -5,7 +5,13 @@ document.getElementById('contactForm').addEventListener('submit', function(e) {
   e.target.reset();
 });
 
-// Firebase Auth - Sign Up
+// Elements
+const authForms = document.getElementById('authForms');
+const userInfo = document.getElementById('userInfo');
+const userEmail = document.getElementById('userEmail');
+const logoutBtn = document.getElementById('logoutBtn');
+
+// Sign Up
 document.getElementById('signupForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = e.target[0].value;
@@ -20,7 +26,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
   }
 });
 
-// Firebase Auth - Login
+// Login
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = e.target[0].value;
@@ -35,13 +41,21 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   }
 });
 
-// Optional: Track Auth State
-firebase.auth().onAuthStateChanged((user) => {
-  if (user) {
-    console.log('User logged in:', user.email);
-  } else {
-    console.log('No user logged in.');
-  }
+// Logout
+logoutBtn.addEventListener('click', async () => {
+  await firebase.auth().signOut();
+  document.getElementById('authMessage').textContent = 'Logged out.';
 });
 
-
+// Auth State
+firebase.auth().onAuthStateChanged((user) => {
+  if (user) {
+    authForms.style.display = 'none';
+    userInfo.style.display = 'block';
+    userEmail.textContent = `Logged in as: ${user.email}`;
+  } else {
+    authForms.style.display = 'flex';
+    userInfo.style.display = 'none';
+    userEmail.textContent = '';
+  }
+});
