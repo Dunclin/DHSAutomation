@@ -41,6 +41,12 @@ section#remote ul {
   margin-left: 2rem;
 }
 
+.auth-forms {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
 form input, form textarea {
   display: block;
   width: 100%;
