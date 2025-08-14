@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PLC Automation Hub</title>
   <link rel="stylesheet" href="styles.css">
-  
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -47,12 +47,14 @@
       <li>Remote Troubleshooting & Support</li>
       <li>Consulting & Project Planning</li>
     </ul>
-    <p>Interested? Sign up or log in below to get started.</p>
+    <p>Sign up or log in below to get started.</p>
   </section>
 
   <section id="account">
-    <h2>Create Account / Login</h2>
-    <div class="auth-forms">
+    <h2>Account</h2>
+
+    <!-- Shown when NOT signed in -->
+    <div id="authForms">
       <form id="signupForm">
         <h3>Sign Up</h3>
         <input type="email" placeholder="Email" required>
@@ -67,6 +69,13 @@
         <button type="submit">Login</button>
       </form>
     </div>
+
+    <!-- Shown when signed in -->
+    <div id="userInfo" style="display:none;">
+      <p id="userEmail"></p>
+      <button id="logoutBtn">Logout</button>
+    </div>
+
     <p id="authMessage"></p>
   </section>
 
