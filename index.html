@@ -8,6 +8,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js"></script>
   <style>
+html, body { overflow-x: hidden; }
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -27,7 +28,7 @@
       z-index: 1000;
     }
     header h1 { margin: 0; font-size: 1.5rem; }
-    nav { display: flex; flex-wrap: wrap; gap: 1rem; }
+    nav { display: flex; flex-wrap: wrap; gap: 1rem; flex-shrink: 0; }
     nav a {
       color: white;
       text-decoration: none;
