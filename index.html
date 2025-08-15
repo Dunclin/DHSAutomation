@@ -9,6 +9,7 @@
   <!-- Firebase SDK (Compat for simpler usage) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
     // TODO: Replace with your Firebase project config from Firebase Console
@@ -48,7 +49,9 @@
       <li>Remote Troubleshooting &amp; Support</li>
       <li>Consulting &amp; Project Planning</li>
     </ul>
-    <p>Sign up or log in below to get started.</p>
+
+    <!-- Dynamic remote content goes here (Teams or Zoom based on user preference/account) -->
+    <div id="remoteContent" class="card"></div>
   </section>
 
   <section id="account">
@@ -83,6 +86,27 @@
       <div class="btn-row">
         <button id="logoutBtn" class="danger">Logout</button>
       </div>
+    </div>
+
+    <!-- Preferences (only when signed in) -->
+    <div id="prefsCard" class="card" style="display:none;">
+      <h3>Remote Work Preference</h3>
+      <form id="prefsForm">
+        <label><input type="radio" name="platform" value="teams"> Microsoft Teams</label><br>
+        <label><input type="radio" name="platform" value="zoom"> Zoom</label>
+        <div class="grid2">
+          <div>
+            <label>Teams meeting link</label>
+            <input type="url" id="teamsLink" placeholder="https://teams.microsoft.com/l/meetup-join/...">
+          </div>
+          <div>
+            <label>Zoom meeting link</label>
+            <input type="url" id="zoomLink" placeholder="https://zoom.us/j/XXXXXXXXXX">
+          </div>
+        </div>
+        <button type="submit">Save Preference</button>
+        <p class="hint">Tip: paste your recurring/personal meeting link so clients can join instantly.</p>
+      </form>
     </div>
 
     <p id="authMessage" class="msg"></p>

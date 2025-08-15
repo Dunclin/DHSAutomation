@@ -41,7 +41,7 @@ section#remote ul { list-style: disc; margin-left: 2rem; }
   padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  max-width: 480px;
+  max-width: 720px;
   margin-bottom: 1rem;
 }
 
@@ -76,22 +76,52 @@ button.danger:hover { background: #c0392b; }
   gap: 0.5rem;
   margin-bottom: 1rem;
 }
-.tab {
-  background: #e9eef6;
-  color: #222;
-}
-.tab.tab-active {
-  background: #007bff;
-  color: #fff;
-}
+.tab { background: #e9eef6; color: #222; }
+.tab.tab-active { background: #007bff; color: #fff; }
 
 .btn-row { display: flex; gap: 0.5rem; }
 
 .msg { margin-top: 0.5rem; min-height: 1.2rem; color: #333; }
+
+.hint { color: #555; font-size: 0.9rem; }
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Remote content styles */
+.remote-cta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+.remote-cta .left {
+  flex: 1;
+}
+.remote-cta .right {
+  white-space: nowrap;
+}
+
+.badge {
+  display: inline-block;
+  background: #eef3ff;
+  color: #1b3a75;
+  border: 1px solid #c5d3ff;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.85rem;
+}
 
 footer {
   background: #1b1b1b;
   color: #fff;
   text-align: center;
   padding: 1rem;
+}
+
+@media (max-width: 700px) {
+  .grid2 { grid-template-columns: 1fr; }
 }
