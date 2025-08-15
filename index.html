@@ -35,17 +35,23 @@
       <a href="#remote">Remote Work</a>
       <a href="#account">Account</a>
       <a href="#contact">Contact</a>
+      <button id="openAuth" class="ghost-btn">Sign In / Sign Up</button>
+      <div id="userBadge" class="badge" style="display:none;"></div>
     </nav>
   </header>
 
   <section id="home" class="hero">
-    <h2>Welcome to PLC Automation Hub</h2>
-    <p>Learn about industrial automation and book remote PLC troubleshooting sessions.</p>
+    <h2>Industrial PLC Automation</h2>
+    <p>Remote PLC programming, troubleshooting, and automation consulting.</p>
+    <div class="cta-row">
+      <a href="#remote"><button>Book Remote Session</button></a>
+      <button id="openAuthHero" class="ghost-btn">Sign In / Sign Up</button>
+    </div>
   </section>
 
   <section id="remote">
     <h2>Remote PLC Work</h2>
-    <p>Schedule and join Zoom sessions for PLC support.</p>
+    <p>Join your personalized Zoom session for PLC support.</p>
 
     <!-- Per-user Zoom card -->
     <div id="remoteContent" class="card"></div>
@@ -54,66 +60,51 @@
   <section id="account">
     <h2>Account</h2>
 
-    <!-- Switch buttons (only shown when NOT signed in) -->
-    <div id="switchBar" class="form-switch">
-      <button id="showSignup" class="tab tab-active">Sign Up</button>
-      <button id="showLogin" class="tab">Login</button>
+    <!-- When NOT signed in -->
+    <div id="accountLoggedOut" class="card">
+      <p>Please sign in to manage your Zoom meeting settings.</p>
+      <button id="openAuthAccount">Sign In / Sign Up</button>
     </div>
 
-    <!-- Forms container (only shown when NOT signed in) -->
-    <div id="authForms">
-      <form id="signupForm" class="card">
-        <h3>Sign Up</h3>
-        <input type="email" placeholder="Email" required />
-        <input type="password" placeholder="Password" required />
-        <button type="submit">Sign Up</button>
-      </form>
-
-      <form id="loginForm" class="card" style="display:none;">
-        <h3>Login</h3>
-        <input type="email" placeholder="Email" required />
-        <input type="password" placeholder="Password" required />
-        <button type="submit">Login</button>
-      </form>
-    </div>
-
-    <!-- Shown when SIGNED IN -->
-    <div id="userInfo" class="card" style="display:none;">
-      <p id="userEmail"></p>
-      <div class="btn-row">
-        <button id="logoutBtn" class="danger">Logout</button>
+    <!-- When SIGNED IN -->
+    <div id="accountLoggedIn" style="display:none;">
+      <div id="userInfo" class="card">
+        <p id="userEmail"></p>
+        <div class="btn-row">
+          <button id="logoutBtn" class="danger">Logout</button>
+        </div>
       </div>
-    </div>
 
-    <!-- Zoom preferences (only when signed in) -->
-    <div id="prefsCard" class="card" style="display:none;">
-      <h3>Your Zoom Meeting Settings</h3>
-      <form id="prefsForm">
-        <div class="grid2">
-          <div>
-            <label>Zoom meeting link</label>
-            <input type="url" id="zoomLink" placeholder="https://zoom.us/j/XXXXXXXXXX" />
+      <!-- Zoom preferences -->
+      <div id="prefsCard" class="card">
+        <h3>Your Zoom Meeting Settings</h3>
+        <form id="prefsForm">
+          <div class="grid2">
+            <div>
+              <label>Zoom meeting link</label>
+              <input type="url" id="zoomLink" placeholder="https://zoom.us/j/XXXXXXXXXX" />
+            </div>
+            <div>
+              <label>Display name (optional)</label>
+              <input type="text" id="zoomDisplayName" placeholder="e.g., Dustin (PLC)" />
+            </div>
           </div>
-          <div>
-            <label>Display name (optional)</label>
-            <input type="text" id="zoomDisplayName" placeholder="e.g., Dustin (PLC)" />
+          <div class="grid2">
+            <div>
+              <label>Meeting number (for SDK in-browser join)</label>
+              <input type="text" id="zoomMeetingNumber" placeholder="1234567890" />
+            </div>
+            <div>
+              <label>Passcode (if required)</label>
+              <input type="text" id="zoomPasscode" placeholder="passcode" />
+            </div>
           </div>
-        </div>
-        <div class="grid2">
-          <div>
-            <label>Meeting number (for SDK in-browser join)</label>
-            <input type="text" id="zoomMeetingNumber" placeholder="1234567890" />
-          </div>
-          <div>
-            <label>Passcode (if required)</label>
-            <input type="text" id="zoomPasscode" placeholder="passcode" />
-          </div>
-        </div>
-        <button type="submit">Save</button>
-        <p class="hint">
-          Save your recurring Zoom link. If you also provide meeting number & passcode and enable the Zoom SDK in <code>config.js</code>, clients can join directly in the browser.
-        </p>
-      </form>
+          <button type="submit">Save</button>
+          <p class="hint">
+            Save your recurring Zoom link. If you also provide meeting number & passcode and enable the Zoom SDK in <code>config.js</code>, clients can join directly in the browser.
+          </p>
+        </form>
+      </div>
     </div>
 
     <p id="authMessage" class="msg"></p>
@@ -132,6 +123,32 @@
   <footer>
     <p>© 2025 PLC Automation Hub</p>
   </footer>
+
+  <!-- AUTH MODAL -->
+  <div id="authOverlay" class="overlay" style="display:none;"></div>
+  <div id="authModal" class="modal" style="display:none;">
+    <div class="modal-header">
+      <h3>Welcome</h3>
+      <button id="closeAuth" class="icon-btn" aria-label="Close">✕</button>
+    </div>
+    <div class="form-switch center">
+      <button id="showSignup" class="tab tab-active">Sign Up</button>
+      <button id="showLogin" class="tab">Login</button>
+    </div>
+    <div id="authForms">
+      <form id="signupForm" class="card shadow-none">
+        <input type="email" placeholder="Email" required />
+        <input type="password" placeholder="Password" required />
+        <button type="submit">Create Account</button>
+      </form>
+
+      <form id="loginForm" class="card shadow-none" style="display:none;">
+        <input type="email" placeholder="Email" required />
+        <input type="password" placeholder="Password" required />
+        <button type="submit">Log In</button>
+      </form>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>

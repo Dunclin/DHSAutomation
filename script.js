@@ -11,12 +11,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Elements
-  const switchBar  = document.getElementById('switchBar');
-  const authForms  = document.getElementById('authForms');
+  const userBadge  = document.getElementById('userBadge');
+  const openAuthBtns = [document.getElementById('openAuth'), document.getElementById('openAuthHero'), document.getElementById('openAuthAccount')].filter(Boolean);
+  const authOverlay = document.getElementById('authOverlay');
+  const authModal   = document.getElementById('authModal');
+  const closeAuth   = document.getElementById('closeAuth');
+
   const signupForm = document.getElementById('signupForm');
   const loginForm  = document.getElementById('loginForm');
   const showSignup = document.getElementById('showSignup');
   const showLogin  = document.getElementById('showLogin');
+
+  const accountLoggedOut = document.getElementById('accountLoggedOut');
+  const accountLoggedIn  = document.getElementById('accountLoggedIn');
   const userInfo   = document.getElementById('userInfo');
   const userEmail  = document.getElementById('userEmail');
   const logoutBtn  = document.getElementById('logoutBtn');
@@ -35,76 +42,37 @@ document.addEventListener('DOMContentLoaded', () => {
   // Helpers
   const setMessage = (msg) => { if (authMsgEl) authMsgEl.textContent = msg || ''; };
   const setActiveTab = (tab) => {
-    if (!showSignup || !showLogin) return;
     if (tab === 'signup') {
       showSignup.classList.add('tab-active');
       showLogin.classList.remove('tab-active');
+      signupForm.style.display = 'block';
+      loginForm.style.display  = 'none';
     } else {
       showLogin.classList.add('tab-active');
       showSignup.classList.remove('tab-active');
-    }
-  };
-
-  const renderRemote = (user, profile) => {
-    if (!remoteEl) return;
-    if (!user) {
-      remoteEl.innerHTML = '<p>Please <strong>log in</strong> to see your personalized Zoom session.</p>';
-      return;
-    }
-    const zoomLink  = profile?.zoomLink || '';
-    const zoomMeetingNumber = profile?.zoomMeetingNumber || '';
-    const zoomPasscode = profile?.zoomPasscode || '';
-    const displayName = profile?.zoomDisplayName || user.email || 'PLC Guest';
-
-    if (window.ZOOM_SDK_ENABLED && zoomMeetingNumber) {
-      const url = new URL('zoom.html', window.location.href);
-      url.searchParams.set('mn', zoomMeetingNumber);
-      if (zoomPasscode) url.searchParams.set('pwd', zoomPasscode);
-      url.searchParams.set('name', encodeURIComponent(displayName));
-      remoteEl.innerHTML = `
-        <div class="remote-cta">
-          <div class="left">
-            <h3>Join Zoom</h3>
-            <p>Use your Zoom link or join directly in your browser.</p>
-          </div>
-          <div class="right">
-            <a href="${zoomLink || '#'}" target="_blank" rel="noopener"><button ${zoomLink ? '' : 'disabled'}>Open Zoom Link</button></a>
-            <a href="${url.toString()}"><button>Join in Browser (Beta)</button></a>
-          </div>
-        </div>`;
-    } else {
-      if (!zoomLink) {
-        remoteEl.innerHTML = '<p class="badge">Zoom</p><p>Add your Zoom meeting link in <strong>Account → Your Zoom Meeting Settings</strong>.</p>';
-        return;
-      }
-      remoteEl.innerHTML = `
-        <div class="remote-cta">
-          <div class="left">
-            <h3>Join Zoom</h3>
-            <p>Your personalized Zoom room is ready.</p>
-          </div>
-          <div class="right">
-            <a href="${zoomLink}" target="_blank" rel="noopener">
-              <button>Open Zoom Meeting</button>
-            </a>
-          </div>
-        </div>`;
-    }
-  };
-
-  // Toggle handlers
-  if (showSignup && showLogin && signupForm && loginForm) {
-    showSignup.addEventListener('click', () => {
-      signupForm.style.display = 'block';
-      loginForm.style.display  = 'none';
-      setActiveTab('signup');
-    });
-    showLogin.addEventListener('click', () => {
       signupForm.style.display = 'none';
       loginForm.style.display  = 'block';
-      setActiveTab('login');
-    });
-  }
+    }
+  };
+  const openModal = (defaultTab='login') => {
+    setActiveTab(defaultTab);
+    authOverlay.style.display = 'block';
+    authModal.style.display = 'block';
+  };
+  const closeModal = () => {
+    authOverlay.style.display = 'none';
+    authModal.style.display = 'none';
+  };
+
+  // Modal events
+  openAuthBtns.forEach(btn => btn.addEventListener('click', () => openModal('login')));
+  closeAuth.addEventListener('click', closeModal);
+  authOverlay.addEventListener('click', closeModal);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+  // Toggle handlers
+  showSignup.addEventListener('click', () => setActiveTab('signup'));
+  showLogin.addEventListener('click', () => setActiveTab('login'));
 
   // Sign Up
   if (signupForm) {
@@ -116,8 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const cred = await firebase.auth().createUserWithEmailAndPassword(email, password);
         setMessage(`Account created: ${cred.user.email}`);
         e.target.reset();
+        closeModal();
       } catch (err) {
-        setMessage(err.message);
+        alert(err.message);
       }
     });
   }
@@ -132,8 +101,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
         setMessage(`Logged in: ${cred.user.email}`);
         e.target.reset();
+        closeModal();
       } catch (err) {
-        setMessage(err.message);
+        alert(err.message);
       }
     });
   }
@@ -150,39 +120,65 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Save preferences
-  if (prefsForm) {
-    prefsForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const zoomLink  = zoomLinkEl?.value?.trim() || '';
-      const zoomMeetingNumber = zoomMeetingNumberEl?.value?.trim() || '';
-      const zoomPasscode = zoomPasscodeEl?.value?.trim() || '';
-      const zoomDisplayName = zoomDisplayNameEl?.value?.trim() || '';
-      const user = firebase.auth().currentUser;
-      if (!user) { setMessage('Please log in.'); return; }
-      try {
-        await db.collection('profiles').doc(user.uid).set(
-          { zoomLink, zoomMeetingNumber, zoomPasscode, zoomDisplayName },
-          { merge: true }
-        );
-        setMessage('Zoom settings saved.');
-        // Re-render remote card
-        renderRemote(user, { zoomLink, zoomMeetingNumber, zoomPasscode, zoomDisplayName });
-      } catch (err) {
-        setMessage(err.message);
+  // Render remote Zoom card
+  const renderRemote = (user, profile) => {
+    if (!remoteEl) return;
+    if (!user) {
+      remoteEl.innerHTML = '<p>Please <strong>sign in</strong> to see your personalized Zoom session.</p>';
+      return;
+    }
+    const zoomLink  = profile?.zoomLink || '';
+    const zoomMeetingNumber = profile?.zoomMeetingNumber || '';
+    const zoomPasscode = profile?.zoomPasscode || '';
+    const displayName = profile?.zoomDisplayName || user.email || 'PLC Guest';
+
+    if (window.ZOOM_SDK_ENABLED && zoomMeetingNumber) {
+      const url = new URL('zoom.html', window.location.href);
+      url.searchParams.set('mn', zoomMeetingNumber);
+      if (zoomPasscode) url.searchParams.set('pwd', zoomPasscode);
+      url.searchParams.set('name', encodeURIComponent(displayName));
+      remoteEl.innerHTML = `
+        <div class="remote-cta card">
+          <div class="left">
+            <h3>Join Zoom</h3>
+            <p>Use your Zoom link or join directly in your browser.</p>
+          </div>
+          <div class="right">
+            <a href="${zoomLink || '#'}" target="_blank" rel="noopener"><button ${zoomLink ? '' : 'disabled'}>Open Zoom Link</button></a>
+            <a href="${url.toString()}"><button>Join in Browser (Beta)</button></a>
+          </div>
+        </div>`;
+    } else {
+      if (!zoomLink) {
+        remoteEl.innerHTML = '<div class="card"><p class="badge">Zoom</p><p>Add your Zoom meeting link in <strong>Account → Your Zoom Meeting Settings</strong>.</p></div>';
+        return;
       }
-    });
-  }
+      remoteEl.innerHTML = `
+        <div class="remote-cta card">
+          <div class="left">
+            <h3>Join Zoom</h3>
+            <p>Your personalized Zoom room is ready.</p>
+          </div>
+          <div class="right">
+            <a href="${zoomLink}" target="_blank" rel="noopener">
+              <button>Open Zoom Meeting</button>
+            </a>
+          </div>
+        </div>`;
+    }
+  };
 
   // Auth state changes
   firebase.auth().onAuthStateChanged(async (user) => {
     if (user) {
-      // UI visibility
-      if (authForms) authForms.style.display = 'none';
-      if (switchBar) switchBar.style.display = 'none';
-      if (userInfo) userInfo.style.display = 'block';
-      if (prefsCard) prefsCard.style.display = 'block';
-      if (userEmail) userEmail.textContent = `Logged in as: ${user.email}`;
+      // Header badge
+      userBadge.style.display = 'inline-block';
+      userBadge.textContent = user.email;
+
+      // Account area
+      accountLoggedOut.style.display = 'none';
+      accountLoggedIn.style.display = 'block';
+      userEmail.textContent = `Signed in as: ${user.email}`;
       setMessage('');
 
       // Load profile
@@ -204,17 +200,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
       renderRemote(user, profile);
     } else {
-      // UI visibility for logged-out
-      if (authForms) authForms.style.display = 'block';
-      if (switchBar) switchBar.style.display = 'inline-flex';
-      if (userInfo) userInfo.style.display = 'none';
-      if (prefsCard) prefsCard.style.display = 'none';
-      if (signupForm && loginForm) {
-        signupForm.style.display = 'block';
-        loginForm.style.display  = 'none';
-        setActiveTab('signup');
-      }
+      // Header badge
+      userBadge.style.display = 'none';
+      userBadge.textContent = '';
+
+      // Account area
+      accountLoggedOut.style.display = 'block';
+      accountLoggedIn.style.display = 'none';
+
       renderRemote(null, null);
     }
   });
+
+  // Save preferences
+  if (prefsForm) {
+    prefsForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const zoomLink  = zoomLinkEl?.value?.trim() || '';
+      const zoomMeetingNumber = zoomMeetingNumberEl?.value?.trim() || '';
+      const zoomPasscode = zoomPasscodeEl?.value?.trim() || '';
+      const zoomDisplayName = zoomDisplayNameEl?.value?.trim() || '';
+      const user = firebase.auth().currentUser;
+      if (!user) { setMessage('Please sign in.'); return; }
+      try {
+        await db.collection('profiles').doc(user.uid).set(
+          { zoomLink, zoomMeetingNumber, zoomPasscode, zoomDisplayName },
+          { merge: true }
+        );
+        setMessage('Zoom settings saved.');
+        // Re-render remote card
+        renderRemote(user, { zoomLink, zoomMeetingNumber, zoomPasscode, zoomDisplayName });
+      } catch (err) {
+        setMessage(err.message);
+      }
+    });
+  }
 });
