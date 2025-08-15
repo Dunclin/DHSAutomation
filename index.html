@@ -1,48 +1,118 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>PLC Automation Hub</title>
+  <title>DHS Automation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; }
+    body { margin: 0; font-family: Arial, sans-serif; background: #f7f9fc; }
     header {
-      position: fixed; top: 0; left: 0; width: 100%;
-      background-color: #111; color: white; padding: 1rem;
-      display: flex; justify-content: space-between; z-index: 1000;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #0f172a;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      z-index: 999;
     }
-    main { padding-top: 80px; }
-    section { display: none; padding: 2rem; }
+    header h1 { margin: 0; font-size: 1.5rem; }
+    nav a {
+      color: white;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    main { padding-top: 100px; max-width: 960px; margin: auto; }
+    section { display: none; padding: 2rem; background: white; margin-top: 1rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
     section.active { display: block; }
+    .modal {
+      display: none;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1001;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 100%;
+    }
+    button { padding: 0.5rem 1rem; margin-top: 1rem; }
   </style>
 </head>
 <body>
   <header>
-    <div>PLC Automation Hub</div>
+    <h1>DHS Automation</h1>
     <nav>
       <a href="#home">Home</a>
       <a href="#remote">Remote Work</a>
       <a href="#account">Account</a>
       <a href="#contact">Contact</a>
+      <a href="#" onclick="openModal()">Sign In / Sign Up</a>
     </nav>
   </header>
+
   <main>
-    <section id="home" class="active"><h1>Welcome to PLC Automation Hub</h1></section>
-    <section id="remote"><h1>Remote Work</h1><p>Zoom session placeholder</p></section>
-    <section id="account"><h1>Account</h1><p>Only visible when signed in</p></section>
-    <section id="contact"><h1>Contact</h1><p>Contact form appears in modal</p></section>
+    <section id="home" class="active">
+      <h2>Industrial PLC Automation</h2>
+      <p>Welcome to DHS Automation. We specialize in remote PLC programming, troubleshooting, and automation support.</p>
+    </section>
+
+    <section id="remote">
+      <h2>Remote PLC Work</h2>
+      <p>Please <strong>sign in</strong> to see your personalized Zoom session.</p>
+    </section>
+
+    <section id="account">
+      <h2>Account</h2>
+      <p>Please sign in to manage your Zoom meeting settings.</p>
+      <button onclick="openModal()">Sign In / Sign Up</button>
+    </section>
+
+    <section id="contact">
+      <h2>Contact Us</h2>
+      <p>Please contact us via email or our contact form.</p>
+    </section>
   </main>
+
+  <!-- Sign In/Up Modal -->
+  <div id="authModal" class="modal" onclick="closeModal(event)">
+    <div class="modal-content">
+      <h3>Sign In / Sign Up</h3>
+      <input type="email" placeholder="Email" style="width:100%; margin-top: 1rem;"><br>
+      <input type="password" placeholder="Password" style="width:100%; margin-top: 1rem;"><br>
+      <button>Continue</button>
+    </div>
+  </div>
+
   <script>
-    const sections = document.querySelectorAll('section');
+    const sections = document.querySelectorAll('main section');
     function showSection(id) {
-      sections.forEach(sec => sec.classList.remove('active'));
-      const el = document.getElementById(id);
-      if (el) el.classList.add('active');
+      sections.forEach(s => s.classList.remove('active'));
+      const target = document.getElementById(id);
+      if (target) target.classList.add('active');
     }
     window.addEventListener('hashchange', () => {
       showSection(location.hash.slice(1) || 'home');
     });
     showSection(location.hash.slice(1) || 'home');
+
+    function openModal() {
+      document.getElementById('authModal').style.display = 'flex';
+    }
+    function closeModal(e) {
+      if (e.target.id === 'authModal') {
+        document.getElementById('authModal').style.display = 'none';
+      }
+    }
   </script>
 </body>
 </html>
