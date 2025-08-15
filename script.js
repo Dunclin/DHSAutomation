@@ -22,8 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const logoutBtn  = document.getElementById('logoutBtn');
   const prefsCard  = document.getElementById('prefsCard');
   const prefsForm  = document.getElementById('prefsForm');
-  const teamsLinkEl= document.getElementById('teamsLink');
   const zoomLinkEl = document.getElementById('zoomLink');
+  const zoomDisplayNameEl = document.getElementById('zoomDisplayName');
+  const zoomMeetingNumberEl = document.getElementById('zoomMeetingNumber');
+  const zoomPasscodeEl = document.getElementById('zoomPasscode');
   const authMsgEl  = document.getElementById('authMessage');
   const remoteEl   = document.getElementById('remoteContent');
 
@@ -46,41 +48,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const renderRemote = (user, profile) => {
     if (!remoteEl) return;
     if (!user) {
-      remoteEl.innerHTML = '<p>Please <strong>log in</strong> to see your personalized remote session link (Teams or Zoom).</p>';
+      remoteEl.innerHTML = '<p>Please <strong>log in</strong> to see your personalized Zoom session.</p>';
       return;
     }
-    const platform = profile?.platform || null;
-    const teamsLink = profile?.teamsLink || '';
     const zoomLink  = profile?.zoomLink || '';
+    const zoomMeetingNumber = profile?.zoomMeetingNumber || '';
+    const zoomPasscode = profile?.zoomPasscode || '';
+    const displayName = profile?.zoomDisplayName || user.email || 'PLC Guest';
 
-    if (!platform) {
-      remoteEl.innerHTML = '<p class="badge">No platform selected</p><p>Choose your preferred remote platform in the <strong>Account</strong> section.</p>';
-      return;
-    }
-
-    if (platform === 'teams') {
-      if (!teamsLink) {
-        remoteEl.innerHTML = '<p class="badge">Teams selected</p><p>Add your Teams meeting link in <strong>Account → Remote Work Preference</strong>.</p>';
-        return;
-      }
+    if (window.ZOOM_SDK_ENABLED && zoomMeetingNumber) {
+      const url = new URL('zoom.html', window.location.href);
+      url.searchParams.set('mn', zoomMeetingNumber);
+      if (zoomPasscode) url.searchParams.set('pwd', zoomPasscode);
+      url.searchParams.set('name', encodeURIComponent(displayName));
       remoteEl.innerHTML = `
         <div class="remote-cta">
           <div class="left">
-            <h3>Join Microsoft Teams</h3>
-            <p>Your personalized Teams session link is ready.</p>
+            <h3>Join Zoom</h3>
+            <p>Use your Zoom link or join directly in your browser.</p>
           </div>
           <div class="right">
-            <a href="${teamsLink}" target="_blank" rel="noopener">
-              <button>Open Teams Meeting</button>
-            </a>
+            <a href="${zoomLink || '#'}" target="_blank" rel="noopener"><button ${zoomLink ? '' : 'disabled'}>Open Zoom Link</button></a>
+            <a href="${url.toString()}"><button>Join in Browser (Beta)</button></a>
           </div>
         </div>`;
-      return;
-    }
-
-    if (platform === 'zoom') {
+    } else {
       if (!zoomLink) {
-        remoteEl.innerHTML = '<p class="badge">Zoom selected</p><p>Add your Zoom meeting link in <strong>Account → Remote Work Preference</strong>.</p>';
+        remoteEl.innerHTML = '<p class="badge">Zoom</p><p>Add your Zoom meeting link in <strong>Account → Your Zoom Meeting Settings</strong>.</p>';
         return;
       }
       remoteEl.innerHTML = `
@@ -95,10 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </a>
           </div>
         </div>`;
-      return;
     }
-
-    remoteEl.textContent = 'Unknown platform preference.';
   };
 
   // Toggle handlers
@@ -163,16 +154,20 @@ document.addEventListener('DOMContentLoaded', () => {
   if (prefsForm) {
     prefsForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const platform = (new FormData(prefsForm)).get('platform');
-      const teamsLink = teamsLinkEl?.value?.trim() || '';
       const zoomLink  = zoomLinkEl?.value?.trim() || '';
+      const zoomMeetingNumber = zoomMeetingNumberEl?.value?.trim() || '';
+      const zoomPasscode = zoomPasscodeEl?.value?.trim() || '';
+      const zoomDisplayName = zoomDisplayNameEl?.value?.trim() || '';
       const user = firebase.auth().currentUser;
       if (!user) { setMessage('Please log in.'); return; }
       try {
-        await db.collection('profiles').doc(user.uid).set({ platform, teamsLink, zoomLink }, { merge: true });
-        setMessage('Preference saved.');
+        await db.collection('profiles').doc(user.uid).set(
+          { zoomLink, zoomMeetingNumber, zoomPasscode, zoomDisplayName },
+          { merge: true }
+        );
+        setMessage('Zoom settings saved.');
         // Re-render remote card
-        renderRemote(user, { platform, teamsLink, zoomLink });
+        renderRemote(user, { zoomLink, zoomMeetingNumber, zoomPasscode, zoomDisplayName });
       } catch (err) {
         setMessage(err.message);
       }
@@ -201,13 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Populate prefs
       if (profile) {
-        const platform = profile.platform;
-        if (platform) {
-          const radio = document.querySelector(`input[name="platform"][value="${platform}"]`);
-          if (radio) radio.checked = true;
-        }
-        if (teamsLinkEl && profile.teamsLink) teamsLinkEl.value = profile.teamsLink;
         if (zoomLinkEl && profile.zoomLink) zoomLinkEl.value = profile.zoomLink;
+        if (zoomMeetingNumberEl && profile.zoomMeetingNumber) zoomMeetingNumberEl.value = profile.zoomMeetingNumber;
+        if (zoomPasscodeEl && profile.zoomPasscode) zoomPasscodeEl.value = profile.zoomPasscode;
+        if (zoomDisplayNameEl && profile.zoomDisplayName) zoomDisplayNameEl.value = profile.zoomDisplayName;
       }
 
       renderRemote(user, profile);

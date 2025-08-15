@@ -33,15 +33,13 @@ nav a {
 
 section { padding: 2rem 1rem; }
 
-section#remote ul { list-style: disc; margin-left: 2rem; }
-
 /* Cards and forms */
 .card {
   background: #fff;
   padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  max-width: 720px;
+  max-width: 820px;
   margin-bottom: 1rem;
 }
 
@@ -91,19 +89,14 @@ button.danger:hover { background: #c0392b; }
   gap: 1rem;
 }
 
-/* Remote content styles */
 .remote-cta {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
 }
-.remote-cta .left {
-  flex: 1;
-}
-.remote-cta .right {
-  white-space: nowrap;
-}
+.remote-cta .left { flex: 1; }
+.remote-cta .right { white-space: nowrap; }
 
 .badge {
   display: inline-block;
