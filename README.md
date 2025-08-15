@@ -1,18 +1,15 @@
+# DHS Automation – Image/Logo Fixes
 
-# DHS Automation — Header Logo Fix Package
+This package:
+- Makes the header logo bigger and visible on the dark header.
+- Uses your actual gallery filenames: `plc-panel-1.jpg` and `plc-panel-2.jpg`.
+- Adds `object-fit: cover` to ensure images fill their boxes cleanly.
+- Adds a small cache-buster (`?v=2`) to defeat old CDN cache.
 
-What's included
----------------
-- `index.html` — header shows only the logo (no trailing text).
-- `site-assets/dhs-logo.png` — the DHS ladder-logic logo used in the header.
-
-How to deploy
--------------
-1. Upload `index.html` to the **root** of your GitHub Pages repo.
-2. Upload `site-assets/dhs-logo.png` to the **site-assets** folder.
-3. Commit to `main` and refresh your site.
-
-Notes
------
-- If you have a different final logo file, just overwrite `site-assets/dhs-logo.png` with your preferred image.
-- The header `<img>` already references `site-assets/dhs-logo.png`.
+## How to deploy
+1. Upload `index.html` to your repo **root** (replace existing file).
+2. Ensure these files exist exactly:
+   - `site-assets/dhs-logo.png`
+   - `site-assets/plc-panel-1.jpg`
+   - `site-assets/plc-panel-2.jpg`
+3. Commit to `main` and hard refresh your site.
