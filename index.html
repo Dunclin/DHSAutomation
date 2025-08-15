@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DHS Automation</title>
 
-  <!-- Firebase compat SDKs (work without bundlers on GitHub Pages) -->
+  <!-- Firebase compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
@@ -66,9 +66,9 @@
 
     footer { background:#0f172a; color:#fff; text-align:center; padding: 1rem; }
 
-    /* Auth modal */
+    /* Modal */
     .overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 70; display: none; }
-    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color:#111; width: min(92vw, 440px); padding: 1.25rem; border-radius: 14px; z-index: 80; display: none; box-shadow: 0 24px 80px rgba(2,6,23,.35); }
+    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color:#111; width: min(92vw, 460px); padding: 1.25rem; border-radius: 14px; z-index: 80; display: none; box-shadow: 0 24px 80px rgba(2,6,23,.35); }
     .modal h3 { margin: 0 0 .75rem; }
     .modal input { width:100%; padding:.6rem .7rem; margin:.5rem 0; border:1px solid #cbd5e1; border-radius: 10px; font-size: 1rem; }
     .modal .actions { display:flex; gap:.5rem; justify-content: space-between; flex-wrap: wrap; }
@@ -76,6 +76,8 @@
     .note { font-size: .9rem; color:#475569; margin-top: .25rem; }
     .error { color:#b91c1c; margin-top: .25rem; }
     .ok { color:#166534; margin-top: .25rem; }
+    .zoom-card { display:none; margin-top: 1rem; }
+    .zoom-link { word-break: break-all; }
   </style>
 </head>
 <body>
@@ -147,7 +149,14 @@
     <section id="remote" class="route">
       <div class="card">
         <h2>Remote Work</h2>
-        <p id="remoteMsg">Sign in to schedule or join a Zoom session.</p>
+        <p id="remoteMsg">Sign in to get your individualized Zoom link.</p>
+        <button id="getZoomBtn" class="btn" style="display:none;">Get my Zoom link</button>
+        <div id="zoomCard" class="card zoom-card">
+          <h3>Your Zoom session</h3>
+          <p><strong>Join link:</strong> <a id="zoomLink" class="zoom-link" href="#" target="_blank" rel="noopener">—</a></p>
+          <p><strong>Meeting ID:</strong> <span id="zoomId">—</span></p>
+          <p><strong>Passcode:</strong> <span id="zoomPass">—</span></p>
+        </div>
       </div>
     </section>
 
@@ -186,7 +195,7 @@
   </div>
 
   <script>
-    // 1) Initialize Firebase
+    // --- Firebase ---
     const firebaseConfig = {
       apiKey: "AIzaSyC-_sJL0xTUJmiwA6Y7x0WrGAV2dHBprLA",
       authDomain: "dhsautomation-3a21f.firebaseapp.com",
@@ -199,7 +208,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // 2) Simple SPA routing
+    // --- SPA routing ---
     const routes = Array.from(document.querySelectorAll('.route'));
     const showRoute = (id) => {
       routes.forEach(r => r.classList.toggle('active', r.id === id));
@@ -208,7 +217,7 @@
     window.addEventListener('hashchange', () => showRoute((location.hash || '#home').slice(1)));
     showRoute((location.hash || '#home').slice(1));
 
-    // 3) Auth modal controls
+    // --- Modal controls ---
     const overlay = document.getElementById('overlay');
     const authModal = document.getElementById('authModal');
     const openAuth = document.getElementById('openAuth');
@@ -228,43 +237,52 @@
     overlay.addEventListener('click', closeModal);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
-    // 4) Sign In / Sign Up / Forgot
     btnSignIn.addEventListener('click', async () => {
-      try {
-        await auth.signInWithEmailAndPassword(emailEl.value, passEl.value);
-        authMsg.textContent = 'Signed in successfully.';
-        closeModal();
-        location.hash = '#account';
-      } catch (e) {
-        authMsg.textContent = e.message;
-        authMsg.className = 'error';
-      }
+      try { await auth.signInWithEmailAndPassword(emailEl.value, passEl.value); closeModal(); location.hash = '#remote'; }
+      catch (e) { authMsg.textContent = e.message; authMsg.className = 'error'; }
     });
-
     btnSignUp.addEventListener('click', async () => {
-      try {
-        await auth.createUserWithEmailAndPassword(emailEl.value, passEl.value);
-        authMsg.textContent = 'Account created and signed in.';
-        closeModal();
-        location.hash = '#account';
-      } catch (e) {
-        authMsg.textContent = e.message;
-        authMsg.className = 'error';
-      }
+      try { await auth.createUserWithEmailAndPassword(emailEl.value, passEl.value); closeModal(); location.hash = '#remote'; }
+      catch (e) { authMsg.textContent = e.message; authMsg.className = 'error'; }
     });
-
     btnForgot.addEventListener('click', async () => {
-      try {
-        await auth.sendPasswordResetEmail(emailEl.value);
-        authMsg.textContent = 'Password reset email sent.';
-        authMsg.className = 'ok';
-      } catch (e) {
-        authMsg.textContent = e.message;
-        authMsg.className = 'error';
-      }
+      try { await auth.sendPasswordResetEmail(emailEl.value); authMsg.textContent = 'Password reset email sent.'; authMsg.className = 'ok'; }
+      catch (e) { authMsg.textContent = e.message; authMsg.className = 'error'; }
     });
 
-    // 5) Toggle UI on auth state
+    // --- Zoom integration (via Worker) ---
+    const getZoomBtn = document.getElementById('getZoomBtn');
+    const zoomCard = document.getElementById('zoomCard');
+    const zoomLink = document.getElementById('zoomLink');
+    const zoomId = document.getElementById('zoomId');
+    const zoomPass = document.getElementById('zoomPass');
+
+    async function fetchZoomLink() {
+      try {
+        const user = auth.currentUser;
+        if (!user) throw new Error('Please sign in first.');
+        const idToken = await user.getIdToken(/* forceRefresh */ true);
+
+        // TODO: replace with your Worker URL
+        const resp = await fetch('https://YOUR_WORKER_SUBDOMAIN.workers.dev/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+          body: JSON.stringify({}) // no body needed
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'Zoom error');
+        zoomLink.href = data.join_url;
+        zoomLink.textContent = data.join_url;
+        zoomId.textContent = data.meeting_id || '—';
+        zoomPass.textContent = data.passcode || '—';
+        zoomCard.style.display = 'block';
+      } catch (e) {
+        alert(e.message || 'Failed to get Zoom link.');
+      }
+    }
+    getZoomBtn.addEventListener('click', fetchZoomLink);
+
+    // --- Auth state UI ---
     const accountLink = document.getElementById('accountLink');
     const logoutLink = document.getElementById('logoutLink');
     const remoteMsg = document.getElementById('remoteMsg');
@@ -283,7 +301,8 @@
         if (openAuthHero) openAuthHero.style.display = 'none';
 
         acctWelcome.textContent = 'Signed in as ' + (user.email || 'your account');
-        remoteMsg.textContent = 'Hi ' + (user.email || '') + ', your Zoom session tools will appear here.';
+        remoteMsg.textContent = 'Hi ' + (user.email || '') + ', click the button to get your unique Zoom link.';
+        getZoomBtn.style.display = 'inline-block';
       } else {
         accountLink.style.display = 'none';
         logoutLink.style.display = 'none';
@@ -291,13 +310,13 @@
         if (openAuthHero) openAuthHero.style.display = 'inline-block';
 
         acctWelcome.textContent = 'Please sign in.';
-        remoteMsg.textContent = 'Sign in to schedule or join a Zoom session.';
+        remoteMsg.textContent = 'Sign in to get your individualized Zoom link.';
+        getZoomBtn.style.display = 'none';
+        zoomCard.style.display = 'none';
       }
     });
 
-    // 6) IMPORTANT: Add your site origin to Firebase Authorized Domains
-    // In Firebase Console → Authentication → Settings → Authorized domains, add:
-    //   dunclin.github.io
+    // IMPORTANT: add dunclin.github.io to Firebase Auth → Settings → Authorized domains
   </script>
 </body>
 </html>
