@@ -86,6 +86,7 @@
     .input { width:100%; padding:.6rem .7rem; border:1px solid #cbd5e1; border-radius:10px; }
     label { font-weight: 600; display:block; margin-top:.5rem; }
     .row { display:flex; gap:.5rem; flex-wrap: wrap; align-items:center; }
+    .sent { color:#166534; }
   </style>
 </head>
 <body>
@@ -161,7 +162,7 @@
 
         <div id="custPane" style="display:none; margin-top:1rem;">
           <h3>For Customers</h3>
-          <p class="muted">No install required — just run the portable app, then tell us your ID & password.</p>
+          <p class="muted">No install required — just run the portable app, then send us your ID & password.</p>
           <div class="grid2">
             <div>
               <h4>Step 1 — Download</h4>
@@ -172,13 +173,13 @@
               <p class="muted" style="margin-top:.5rem;">Open the app — it will show an <strong>ID</strong> and <strong>Password</strong>.</p>
             </div>
             <div>
-              <h4>Step 2 — Share your code</h4>
+              <h4>Step 2 — Send your code to the technician</h4>
               <label for="custId">Your RustDesk ID</label>
               <input class="input" id="custId" placeholder="e.g., 123 456 789" />
               <label for="custPass">Your RustDesk Password</label>
               <input class="input" id="custPass" placeholder="e.g., abcd12" />
               <div class="row" style="margin-top:.5rem;">
-                <button class="btn" id="copySession">Copy for Support</button>
+                <button class="btn" id="emailSession">Send to Technician</button>
                 <span id="copyNote" class="muted"></span>
               </div>
             </div>
@@ -340,15 +341,22 @@
       }
     });
 
-    // Small helpers
-    document.getElementById('copySession').addEventListener('click', () => {
+    // Send email to technician with ID/password via mailto
+    document.getElementById('emailSession').addEventListener('click', () => {
       const id = document.getElementById('custId').value.trim();
       const pw = document.getElementById('custPass').value.trim();
-      const out = `RustDesk ID: ${id}\nPassword: ${pw}`;
-      navigator.clipboard.writeText(out).then(() => {
-        document.getElementById('copyNote').textContent = 'Copied — paste this into your email or chat to support.';
-      });
+      if (!id || !pw) {
+        document.getElementById('copyNote').textContent = 'Please enter both your ID and password.';
+        return;
+      }
+      const subject = encodeURIComponent('RustDesk Support Request');
+      const body = encodeURIComponent(`Customer RustDesk details:\n\nID: ${id}\nPassword: ${pw}\n\nDevice/Issue notes:`);
+      const mailto = `mailto:dunclin@hotmail.com?subject=${subject}&body=${body}`;
+      window.location.href = mailto;
+      document.getElementById('copyNote').innerHTML = '<span class="sent">Opening your email app… if it does not open, copy this text and email it to <strong>dunclin@hotmail.com</strong>.</span>';
     });
+
+    // Admin helpers
     document.getElementById('pasteId').addEventListener('click', async () => {
       try {
         const text = await navigator.clipboard.readText();
