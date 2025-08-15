@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DHS Automation</title>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; overflow-x: hidden; }
@@ -188,7 +189,10 @@
     overlay.addEventListener('click', closeModal);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
-    continueAuth.addEventListener('click', () => { alert('Demo only — hook up Firebase to enable real auth.'); closeModal(); });
+    continueAuth.addEventListener('click', () => {
+      alert('Demo only — connect Firebase to enable real accounts.');
+      closeModal();
+    });
   </script>
 </body>
 </html>
