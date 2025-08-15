@@ -5,154 +5,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DHS Automation</title>
 
-  <!-- Firebase (Compat for simple namespace usage) -->
+  <!-- Firebase Compat (email/password auth) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
-  <style>
-    /* Reset + base */
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; overflow-x: hidden; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; background: #eef2f6; color: #0f172a; }
-
-    /* Header */
-    header { position: sticky; top: 0; z-index: 40; background:#0f172a; color:#fff; box-shadow: 0 2px 8px rgba(2,6,23,.25); }
-    .nav { max-width: 1200px; margin: 0 auto; padding: .9rem 1rem; display:flex; align-items:center; justify-content:space-between; gap: 1rem; }
-    .brand { font-weight:700; letter-spacing:.2px; white-space: nowrap; }
-    .links { display:flex; gap:1rem; flex-wrap:wrap; align-items:center; }
-    .links a { color:#fff; text-decoration:none; font-weight:600; opacity:.95; }
-    .links a:hover { opacity:1; text-decoration:underline; }
-    .account-link { display:none; } /* hidden until auth */
-
-    /* Layout containers */
-    main { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem 3rem; }
-    .card { background:#fff; border-radius:14px; padding: 1.25rem 1.5rem; box-shadow: 0 8px 24px rgba(2,6,23,.08); margin: 1.25rem auto; max-width: 820px; }
-
-    /* Staggered gallery */
-    .gallery { display: grid; gap: 1.5rem; margin-top: 1rem; }
-    .gallery-row {
-      display: grid;
-      grid-template-columns: 1.1fr 1fr;
-      align-items: center;
-      gap: 1.5rem;
-      background:#fff;
-      border-radius:14px;
-      padding: 1rem;
-      box-shadow: 0 8px 24px rgba(2,6,23,.08);
-    }
-    .gallery-row:nth-child(even) { grid-template-columns: 1fr 1.1fr; }
-    .gallery-row:nth-child(even) .media { order: 2; }
-    .gallery-row:nth-child(even) .text  { order: 1; }
-
-    .media {
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      border-radius: 12px;
-      overflow: hidden;
-      background:#e7edf6;
-      box-shadow: inset 0 0 0 1px rgba(2,6,23,.06);
-    }
-    .media img { width:100%; height:100%; object-fit:cover; display:block; }
-
-    .text { padding: .25rem .25rem; }
-    .text h3 { margin:.1rem 0 .5rem; font-size: 1.25rem; }
-    .text p  { margin: 0 0 .6rem; color:#334155; line-height:1.55; }
-    .text ul { margin: 0; padding-left: 1.1rem; color:#475569; }
-    .text li { margin: .2rem 0; }
-
-    /* Sections hidden until routed */
-    .route { display:none; }
-    .route.active { display:block; }
-
-    /* Auth modal */
-    .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); display:none; z-index: 60; }
-    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background:#fff; color:#111; width: min(92vw, 440px); padding: 1.25rem; border-radius: 14px; z-index: 70; display:none; box-shadow: 0 24px 80px rgba(2,6,23,.35); }
-    .modal h3 { margin: 0 0 .75rem; }
-    .modal input { width:100%; padding:.6rem .7rem; margin:.5rem 0; border:1px solid #cbd5e1; border-radius: 10px; font-size: 1rem; }
-    .modal .actions { display:flex; gap:.5rem; justify-content: flex-end; }
-    .btn { padding:.6rem 1rem; border:none; border-radius:10px; background:#1d4ed8; color:#fff; font-weight:600; cursor:pointer; }
-    .btn.alt { background: transparent; color:#1d4ed8; border:1px solid #93c5fd; }
-    .btn.danger { background:#ef4444; }
-
-    @media (max-width: 900px) {
-      .gallery-row,
-      .gallery-row:nth-child(even) { grid-template-columns: 1fr; }
-      .gallery-row:nth-child(even) .media,
-      .gallery-row:nth-child(even) .text { order: initial; }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header>
     <div class="nav">
       <div class="brand">DHS Automation</div>
-      <nav class="links">
+      <nav>
         <a href="#home">Home</a>
         <a href="#remote">Remote Work</a>
-        <a href="#account" id="accountLink" class="account-link">Account</a>
+        <a href="#account" id="accountLink">Account</a>
         <a href="#contact">Contact</a>
         <a href="#" id="openAuth">Sign In / Sign Up</a>
-        <a href="#" id="logoutLink" style="display:none;">Log Out</a>
+        <a href="#" id="logoutLink">Log Out</a>
       </nav>
     </div>
   </header>
 
+  <!-- Hero like the early version -->
+  <section class="hero">
+    <div class="hero-inner">
+      <h1>Industrial PLC Automation</h1>
+      <p>Remote PLC programming, troubleshooting, and automation consulting.</p>
+      <div class="cta">
+        <a href="#remote"><button class="btn primary">Book Remote Session</button></a>
+        <button class="btn ghost" id="openAuthHero">Sign In / Sign Up</button>
+      </div>
+    </div>
+  </section>
+
   <main>
-    <!-- Home -->
+    <!-- HOME: a single clean card (no forms in body) -->
     <section id="home" class="route active">
       <div class="card">
-        <h2>Industrial PLC Automation</h2>
-        <p>Remote PLC programming, troubleshooting, and automation consulting.</p>
+        <h2>Why DHS Automation?</h2>
+        <p>We deliver clean, reliable control systems and fast remote support across Allen‑Bradley, Siemens, and more.</p>
       </div>
-
-      <!-- Staggered PLC gallery -->
-      <section class="gallery">
-        <!-- Row 1 -->
-        <article class="gallery-row">
-          <div class="media">
-            <img src="assets/plc-panel-1.jpg" alt="Allen-Bradley PLC rack inside a control cabinet with multiple I/O modules." />
-          </div>
-          <div class="text">
-            <h3>Allen-Bradley PLC Rack</h3>
-            <p>
-              ControlLogix/CompactLogix rack with mixed I/O and clean field wiring. Built for high-reliability process and motion control with future expansion in mind.
-            </p>
-            <ul>
-              <li>Modular digital/analog I/O</li>
-              <li>Clear labeling & cable routing</li>
-              <li>Designed for uptime & serviceability</li>
-            </ul>
-          </div>
-        </article>
-
-        <!-- Row 2 -->
-        <article class="gallery-row">
-          <div class="media">
-            <img src="assets/plc-panel-2.jpg" alt="Industrial control cabinet with EATON VFD, breakers, contactors and terminal strips." />
-          </div>
-          <div class="text">
-            <h3>VFD & Motor Control Cabinet</h3>
-            <p>
-              EATON VFD with upstream protection and DIN-rail components for dependable motor control, energy savings, and straightforward field service.
-            </p>
-            <ul>
-              <li>Integrated protection & isolation</li>
-              <li>Clean power vs. control segregation</li>
-              <li>Service-friendly layout & labeling</li>
-            </ul>
-          </div>
-        </article>
-      </section>
     </section>
 
-    <!-- Remote -->
+    <!-- REMOTE -->
     <section id="remote" class="route">
       <div class="card">
-        <h2>Remote Work</h2>
+        <h2>Remote PLC Work</h2>
         <p>Please sign in to see your personalized Zoom session.</p>
       </div>
     </section>
 
-    <!-- Account (hidden until authed) -->
+    <!-- ACCOUNT (hidden until signed in) -->
     <section id="account" class="route">
       <div class="card">
         <h2>Account</h2>
@@ -160,14 +63,18 @@
       </div>
     </section>
 
-    <!-- Contact -->
+    <!-- CONTACT -->
     <section id="contact" class="route">
       <div class="card">
         <h2>Contact</h2>
-        <p>Drop us a note — we’ll get back quickly.</p>
+        <p>Tell us about your application — we’ll reply quickly.</p>
       </div>
     </section>
   </main>
+
+  <footer>
+    © 2025 DHS Automation
+  </footer>
 
   <!-- AUTH MODAL -->
   <div id="overlay" class="overlay"></div>
@@ -182,7 +89,7 @@
   </div>
 
   <script>
-    // --- Firebase config (replace with your real project values) ---
+    // Replace with your real Firebase project config
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -192,7 +99,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // --- Routing ---
+    // Simple SPA routing
     const routes = Array.from(document.querySelectorAll('.route'));
     const showRoute = (id) => {
       routes.forEach(r => r.classList.toggle('active', r.id === id));
@@ -201,10 +108,11 @@
     window.addEventListener('hashchange', () => showRoute((location.hash || '#home').slice(1)));
     showRoute((location.hash || '#home').slice(1));
 
-    // --- Auth modal ---
+    // Modal controls
     const overlay = document.getElementById('overlay');
     const authModal = document.getElementById('authModal');
     const openAuth = document.getElementById('openAuth');
+    const openAuthHero = document.getElementById('openAuthHero');
     const closeAuth = document.getElementById('closeAuth');
     const continueAuth = document.getElementById('continueAuth');
     const emailEl = document.getElementById('email');
@@ -215,25 +123,23 @@
     function openModal() { overlay.style.display = 'block'; authModal.style.display = 'block'; }
     function closeModal() { overlay.style.display = 'none'; authModal.style.display = 'none'; }
 
-    openAuth.addEventListener('click', (e) => { e.preventDefault(); openModal(); });
+    [openAuth, openAuthHero].forEach(btn => btn?.addEventListener('click', (e) => { e.preventDefault(); openModal(); }));
     closeAuth.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
     overlay.addEventListener('click', closeModal);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
-    // Continue: Sign in, or sign up if user doesn't exist
+    // Auth: sign in or create account
     continueAuth.addEventListener('click', async () => {
       const email = (emailEl.value || '').trim();
       const password = passEl.value || '';
       if (!email || !password) { alert('Enter email and password'); return; }
       try {
         await auth.signInWithEmailAndPassword(email, password);
-        closeModal();
-        location.hash = '#account';
+        closeModal(); location.hash = '#account';
       } catch (e) {
         try {
           await auth.createUserWithEmailAndPassword(email, password);
-          closeModal();
-          location.hash = '#account';
+          closeModal(); location.hash = '#account';
         } catch (err) {
           alert(err.message);
         }
@@ -246,16 +152,18 @@
       try { await auth.signOut(); location.hash = '#home'; } catch (err) { alert(err.message); }
     });
 
-    // Auth state UI
+    // Auth state
     auth.onAuthStateChanged((user) => {
       if (user) {
         accountLink.style.display = 'inline';
         logoutLink.style.display = 'inline';
         openAuth.style.display = 'none';
+        if (openAuthHero) openAuthHero.style.display = 'none';
       } else {
         accountLink.style.display = 'none';
         logoutLink.style.display = 'none';
         openAuth.style.display = 'inline';
+        if (openAuthHero) openAuthHero.style.display = 'inline-block';
       }
     });
   </script>
