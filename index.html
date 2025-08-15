@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
   <title>DHS Automation</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js"></script>
   <style>
     body {
       margin: 0;
@@ -17,30 +19,23 @@
       width: 100%;
       background: #0f172a;
       color: white;
-      padding: 1rem 1rem;
+      padding: 1rem;
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
       align-items: flex-start;
       z-index: 1000;
     }
-    header h1 {
-      font-size: 1.5rem;
-      margin: 0;
-    }
-    nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
+    header h1 { margin: 0; font-size: 1.5rem; }
+    nav { display: flex; flex-wrap: wrap; gap: 1rem; }
     nav a {
       color: white;
       text-decoration: none;
       font-weight: bold;
     }
-    nav a#accountLink {
-      display: none; /* initially hidden */
-    }
+    nav a#accountLink { display: none; }
+    nav a#logoutLink { display: none; cursor: pointer; }
+
     main {
       max-width: 960px;
       margin: 5rem auto;
@@ -53,12 +48,8 @@
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.05);
     }
-    section.active {
-      display: block;
-    }
-    section#account {
-      display: none;
-    }
+    section.active { display: block; }
+    section#account { display: none; }
 
     .modal {
       display: none;
@@ -78,20 +69,17 @@
       width: 90%;
       max-width: 400px;
       box-sizing: border-box;
-      box-shadow: 0 0 20px rgba(0,0,0,0.25);
     }
 
     input {
       width: 100%;
       padding: 0.5rem;
       margin-top: 1rem;
-      font-size: 1rem;
     }
 
     button {
       margin-top: 1rem;
       padding: 0.5rem 1rem;
-      font-size: 1rem;
     }
 
     @media (min-width: 600px) {
@@ -111,7 +99,8 @@
       <a href="#remote">Remote Work</a>
       <a href="#account" id="accountLink">Account</a>
       <a href="#contact">Contact</a>
-      <a href="#" onclick="openAuthModal()">Sign In / Sign Up</a>
+      <a href="#" onclick="openAuthModal()" id="loginLink">Sign In / Sign Up</a>
+      <a id="logoutLink" onclick="logout()">Log Out</a>
     </nav>
   </header>
 
@@ -137,24 +126,32 @@
       <h3>Sign In / Sign Up</h3>
       <input id="emailInput" type="email" placeholder="Email" />
       <input id="passwordInput" type="password" placeholder="Password" />
-      <button onclick="fakeLogin()">Continue</button>
+      <button onclick="signInOrSignUp()">Continue</button>
     </div>
   </div>
 
   <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
     const sections = document.querySelectorAll('main section');
+    const accountLink = document.getElementById('accountLink');
+    const loginLink = document.getElementById('loginLink');
+    const logoutLink = document.getElementById('logoutLink');
+    const accountSection = document.getElementById('account');
 
     function showSection(id) {
       sections.forEach(s => s.classList.remove('active'));
       const el = document.getElementById(id);
       if (el) el.classList.add('active');
     }
-
-    window.addEventListener('hashchange', () => {
-      const sectionId = location.hash.slice(1) || 'home';
-      showSection(sectionId);
-    });
-    showSection(location.hash.slice(1) || 'home');
 
     function openAuthModal() {
       document.getElementById('authModal').style.display = 'flex';
@@ -166,11 +163,40 @@
       }
     }
 
-    function fakeLogin() {
-      document.getElementById('authModal').style.display = 'none';
-      document.getElementById('accountLink').style.display = 'inline';
-      alert('You are now signed in (simulated)');
+    function signInOrSignUp() {
+      const email = document.getElementById('emailInput').value;
+      const password = document.getElementById('passwordInput').value;
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => document.getElementById('authModal').style.display = 'none')
+        .catch(() => {
+          auth.createUserWithEmailAndPassword(email, password)
+            .then(() => document.getElementById('authModal').style.display = 'none')
+            .catch(err => alert(err.message));
+        });
     }
+
+    function logout() {
+      auth.signOut();
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        accountLink.style.display = 'inline';
+        accountSection.style.display = 'block';
+        loginLink.style.display = 'none';
+        logoutLink.style.display = 'inline';
+      } else {
+        accountLink.style.display = 'none';
+        accountSection.style.display = 'none';
+        loginLink.style.display = 'inline';
+        logoutLink.style.display = 'none';
+      }
+    });
+
+    window.addEventListener('hashchange', () => {
+      showSection(location.hash.slice(1) || 'home');
+    });
+    showSection(location.hash.slice(1) || 'home');
   </script>
 </body>
 </html>
