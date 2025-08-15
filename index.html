@@ -38,6 +38,9 @@
       text-decoration: none;
       font-weight: bold;
     }
+    nav a#accountLink {
+      display: none; /* initially hidden */
+    }
     main {
       max-width: 960px;
       margin: 5rem auto;
@@ -52,6 +55,9 @@
     }
     section.active {
       display: block;
+    }
+    section#account {
+      display: none;
     }
 
     .modal {
@@ -72,6 +78,7 @@
       width: 90%;
       max-width: 400px;
       box-sizing: border-box;
+      box-shadow: 0 0 20px rgba(0,0,0,0.25);
     }
 
     input {
@@ -102,7 +109,7 @@
     <nav>
       <a href="#home">Home</a>
       <a href="#remote">Remote Work</a>
-      <a href="#account">Account</a>
+      <a href="#account" id="accountLink">Account</a>
       <a href="#contact">Contact</a>
       <a href="#" onclick="openAuthModal()">Sign In / Sign Up</a>
     </nav>
@@ -118,6 +125,7 @@
     </section>
     <section id="account">
       <h2>Account</h2>
+      <p>Welcome! You're signed in.</p>
     </section>
     <section id="contact">
       <h2>Contact</h2>
@@ -127,21 +135,24 @@
   <div id="authModal" class="modal" onclick="closeAuthModal(event)">
     <div class="modal-content">
       <h3>Sign In / Sign Up</h3>
-      <input type="email" placeholder="Email" />
-      <input type="password" placeholder="Password" />
-      <button>Continue</button>
+      <input id="emailInput" type="email" placeholder="Email" />
+      <input id="passwordInput" type="password" placeholder="Password" />
+      <button onclick="fakeLogin()">Continue</button>
     </div>
   </div>
 
   <script>
     const sections = document.querySelectorAll('main section');
+
     function showSection(id) {
       sections.forEach(s => s.classList.remove('active'));
       const el = document.getElementById(id);
       if (el) el.classList.add('active');
     }
+
     window.addEventListener('hashchange', () => {
-      showSection(location.hash.slice(1) || 'home');
+      const sectionId = location.hash.slice(1) || 'home';
+      showSection(sectionId);
     });
     showSection(location.hash.slice(1) || 'home');
 
@@ -153,6 +164,12 @@
       if (e.target.id === 'authModal') {
         document.getElementById('authModal').style.display = 'none';
       }
+    }
+
+    function fakeLogin() {
+      document.getElementById('authModal').style.display = 'none';
+      document.getElementById('accountLink').style.display = 'inline';
+      alert('You are now signed in (simulated)');
     }
   </script>
 </body>
