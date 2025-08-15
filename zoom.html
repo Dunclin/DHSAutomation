@@ -35,9 +35,7 @@
     const sdkKey = window.ZOOM_SDK_KEY;
     const signatureEndpoint = window.ZOOM_SIGNATURE_ENDPOINT;
 
-    if (!window.ZOOM_SDK_ENABLED) {
-      alert('Zoom SDK is disabled. Enable it in config.js.');
-    }
+    if (!window.ZOOM_SDK_ENABLED) { alert('Zoom SDK is disabled. Enable it in config.js.'); }
     if (!meetingNumber || !sdkKey || !signatureEndpoint) {
       alert('Missing meetingNumber, SDK key, or signature endpoint. Check config.js and the URL.');
     }

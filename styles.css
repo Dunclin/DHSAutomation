@@ -85,6 +85,9 @@ button.danger:hover { background: #b91c1c; }
 .ghost-btn { background: transparent; border: 1px solid #475569; color: #e2e8f0; }
 .ghost-btn:hover { background: rgba(226,232,240,0.08); }
 
+.link-btn { background: transparent; color: #1d4ed8; border: none; cursor: pointer; }
+.link-btn:hover { text-decoration: underline; }
+
 .btn-row { display: flex; gap: 0.5rem; }
 
 .msg { margin-top: 0.5rem; min-height: 1.2rem; color: #334155; }
@@ -116,7 +119,7 @@ button.danger:hover { background: #b91c1c; }
   font-size: 0.85rem;
 }
 
-/* Modal */
+/* Modals (Auth, Settings, Contact) */
 .overlay {
   position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
   z-index: 50;
@@ -125,7 +128,7 @@ button.danger:hover { background: #b91c1c; }
   position: fixed; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   background: #fff; color: #111;
-  width: min(92vw, 480px);
+  width: min(92vw, 520px);
   padding: 1rem;
   border-radius: 16px;
   z-index: 60;

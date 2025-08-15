@@ -1,57 +1,84 @@
 // Ensure DOM loaded
 document.addEventListener('DOMContentLoaded', () => {
-  // Simple SPA routing: show one section at a time based on hash
+  // SPA routing
   const routes = Array.from(document.querySelectorAll('.route'));
   const setRoute = (name) => {
     routes.forEach(sec => sec.classList.toggle('active', sec.id === name));
-    // scroll to top of content on route change
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
   const initial = (location.hash || '#home').replace('#', '');
   setRoute(initial);
   window.addEventListener('hashchange', () => setRoute((location.hash || '#home').replace('#', '')));
 
-  // Contact Form
-  const contactForm = document.getElementById('contactForm');
-  if (contactForm) {
-    contactForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      alert('Thank you! Your message has been sent.');
-      e.target.reset();
-    });
-  }
-
-  // Elements
+  // Header badge & buttons
   const userBadge  = document.getElementById('userBadge');
   const openAuthBtns = [document.getElementById('openAuth'), document.getElementById('openAuthHero'), document.getElementById('openAuthAccount')].filter(Boolean);
+
+  // Modals & shared helpers
   const authOverlay = document.getElementById('authOverlay');
   const authModal   = document.getElementById('authModal');
   const closeAuth   = document.getElementById('closeAuth');
+  const settingsOverlay = document.getElementById('settingsOverlay');
+  const settingsModal   = document.getElementById('settingsModal');
+  const closeSettings   = document.getElementById('closeSettings');
+  const contactOverlay = document.getElementById('contactOverlay');
+  const contactModal   = document.getElementById('contactModal');
+  const closeContact   = document.getElementById('closeContact');
 
+  const openModal = (overlay, modal) => { overlay.style.display = 'block'; modal.style.display = 'block'; };
+  const closeModal = (overlay, modal) => { overlay.style.display = 'none'; modal.style.display = 'none'; };
+
+  // Auth modal form elements
   const signupForm = document.getElementById('signupForm');
   const loginForm  = document.getElementById('loginForm');
   const showSignup = document.getElementById('showSignup');
   const showLogin  = document.getElementById('showLogin');
+  const forgotPassword = document.getElementById('forgotPassword');
 
+  // Account page elements
   const accountLoggedOut = document.getElementById('accountLoggedOut');
   const accountLoggedIn  = document.getElementById('accountLoggedIn');
-  const userInfo   = document.getElementById('userInfo');
   const userEmail  = document.getElementById('userEmail');
   const logoutBtn  = document.getElementById('logoutBtn');
-  const prefsCard  = document.getElementById('prefsCard');
+  const openSettingsBtn = document.getElementById('openSettings');
+
+  // Settings modal elements
   const prefsForm  = document.getElementById('prefsForm');
   const zoomLinkEl = document.getElementById('zoomLink');
-  const zoomDisplayNameEl = document.getElementById('zoomDisplayName');
   const zoomMeetingNumberEl = document.getElementById('zoomMeetingNumber');
   const zoomPasscodeEl = document.getElementById('zoomPasscode');
-  const authMsgEl  = document.getElementById('authMessage');
+  const zoomDisplayNameEl = document.getElementById('zoomDisplayName');
+
+  // Contact modal elements
+  const openContactBtn = document.getElementById('openContact');
+  const contactForm = document.getElementById('contactForm');
+
+  // Remote elements
   const remoteEl   = document.getElementById('remoteContent');
+  const authMsgEl  = document.getElementById('authMessage');
 
-  // Firestore
-  const db = firebase.firestore();
-
-  // Helpers
   const setMessage = (msg) => { if (authMsgEl) authMsgEl.textContent = msg || ''; };
+
+  // Modal event wiring
+  openAuthBtns.forEach(btn => btn.addEventListener('click', () => openModal(authOverlay, authModal)));
+  closeAuth.addEventListener('click', () => closeModal(authOverlay, authModal));
+  authOverlay.addEventListener('click', () => closeModal(authOverlay, authModal));
+
+  openContactBtn.addEventListener('click', () => openModal(contactOverlay, contactModal));
+  closeContact.addEventListener('click', () => closeModal(contactOverlay, contactModal));
+  contactOverlay.addEventListener('click', () => closeModal(contactOverlay, contactModal));
+  contactForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    alert('Thanks! We will reach out.');
+    contactForm.reset();
+    closeModal(contactOverlay, contactModal);
+  });
+
+  openSettingsBtn?.addEventListener('click', () => openModal(settingsOverlay, settingsModal));
+  closeSettings.addEventListener('click', () => closeModal(settingsOverlay, settingsModal));
+  settingsOverlay.addEventListener('click', () => closeModal(settingsOverlay, settingsModal));
+
+  // Auth modal tab switching
   const setActiveTab = (tab) => {
     if (tab === 'signup') {
       showSignup.classList.add('tab-active');
@@ -65,84 +92,134 @@ document.addEventListener('DOMContentLoaded', () => {
       loginForm.style.display  = 'block';
     }
   };
-  const openModal = (defaultTab='login') => {
-    setActiveTab(defaultTab);
-    authOverlay.style.display = 'block';
-    authModal.style.display = 'block';
-  };
-  const closeModal = () => {
-    authOverlay.style.display = 'none';
-    authModal.style.display = 'none';
-  };
-
-  // Modal events
-  openAuthBtns.forEach(btn => btn.addEventListener('click', () => openModal('login')));
-  closeAuth.addEventListener('click', closeModal);
-  authOverlay.addEventListener('click', closeModal);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-
-  // Toggle handlers
   showSignup.addEventListener('click', () => setActiveTab('signup'));
   showLogin.addEventListener('click', () => setActiveTab('login'));
 
-  // Sign Up
-  if (signupForm) {
+  // Firebase guards
+  let auth = null, db = null;
+  try { auth = firebase.auth(); } catch (e) { console.warn('Auth not available:', e); }
+  try { db = firebase.firestore(); } catch (e) { console.warn('Firestore not available:', e); }
+
+  // Auth flows (modal)
+  if (auth) {
     signupForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = e.target[0].value;
       const password = e.target[1].value;
       try {
-        const cred = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        const cred = await auth.createUserWithEmailAndPassword(email, password);
         setMessage(`Account created: ${cred.user.email}`);
-        e.target.reset();
-        closeModal();
-        // Navigate to account page
+        signupForm.reset();
+        closeModal(authOverlay, authModal);
         location.hash = '#account';
       } catch (err) {
         alert(err.message);
       }
     });
-  }
 
-  // Login
-  if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = e.target[0].value;
       const password = e.target[1].value;
       try {
-        const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
+        const cred = await auth.signInWithEmailAndPassword(email, password);
         setMessage(`Logged in: ${cred.user.email}`);
-        e.target.reset();
-        closeModal();
-        // Navigate to account page
+        loginForm.reset();
+        closeModal(authOverlay, authModal);
         location.hash = '#account';
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    forgotPassword.addEventListener('click', async () => {
+      const email = prompt('Enter your account email:');
+      if (!email) return;
+      try {
+        await auth.sendPasswordResetEmail(email);
+        alert('Password reset email sent.');
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    logoutBtn?.addEventListener('click', async () => {
+      try { await auth.signOut(); setMessage('Logged out.'); location.hash = '#home'; }
+      catch (err) { setMessage(err.message); }
+    });
+
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        userBadge.style.display = 'inline-block';
+        userBadge.textContent = user.email;
+
+        document.getElementById('accountLoggedOut').style.display = 'none';
+        document.getElementById('accountLoggedIn').style.display  = 'block';
+        userEmail.textContent = `Signed in as: ${user.email}`;
+        setMessage('');
+
+        // Load profile (if Firestore)
+        let profile = {};
+        if (db) {
+          try {
+            const snap = await db.collection('profiles').doc(user.uid).get();
+            profile = snap.exists ? snap.data() : {};
+          } catch (err) {
+            console.warn('Profile load failed:', err);
+          }
+        }
+        // Pre-fill settings modal
+        if (zoomLinkEl && profile.zoomLink) zoomLinkEl.value = profile.zoomLink;
+        if (zoomMeetingNumberEl && profile.zoomMeetingNumber) zoomMeetingNumberEl.value = profile.zoomMeetingNumber;
+        if (zoomPasscodeEl && profile.zoomPasscode) zoomPasscodeEl.value = profile.zoomPasscode;
+        if (zoomDisplayNameEl && profile.zoomDisplayName) zoomDisplayNameEl.value = profile.zoomDisplayName;
+
+        renderRemote(user, profile);
+      } else {
+        userBadge.style.display = 'none';
+        userBadge.textContent = '';
+
+        document.getElementById('accountLoggedOut').style.display = 'block';
+        document.getElementById('accountLoggedIn').style.display  = 'none';
+
+        renderRemote(null, null);
+      }
+    });
+  } else {
+    // If Firebase not configured, keep UI functional without auth
+    openAuthBtns.forEach(btn => btn.addEventListener('click', () => alert('Configure Firebase in index.html to enable Sign In / Sign Up.')));
+    openSettingsBtn?.addEventListener('click', () => alert('Configure Firebase to save Zoom settings.'));
+  }
+
+  // Save Zoom settings (in Settings modal)
+  if (db && auth && prefsForm) {
+    prefsForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const user = auth.currentUser;
+      if (!user) { setMessage('Please sign in.'); return; }
+      const zoomLink  = zoomLinkEl?.value?.trim() || '';
+      const zoomMeetingNumber = zoomMeetingNumberEl?.value?.trim() || '';
+      const zoomPasscode = zoomPasscodeEl?.value?.trim() || '';
+      const zoomDisplayName = zoomDisplayNameEl?.value?.trim() || '';
+      try {
+        await db.collection('profiles').doc(user.uid).set(
+          { zoomLink, zoomMeetingNumber, zoomPasscode, zoomDisplayName },
+          { merge: true }
+        );
+        alert('Zoom settings saved.');
+        closeModal(settingsOverlay, settingsModal);
+        renderRemote(user, { zoomLink, zoomMeetingNumber, zoomPasscode, zoomDisplayName });
       } catch (err) {
         alert(err.message);
       }
     });
   }
 
-  // Logout
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
-      try {
-        await firebase.auth().signOut();
-        setMessage('Logged out.');
-        location.hash = '#home';
-      } catch (err) {
-        setMessage(err.message);
-      }
-    });
-  }
-
-  // Render remote Zoom card
-  const renderRemote = (user, profile) => {
+  // Remote renderer (no inline fields anywhere)
+  function renderRemote(user, profile) {
     if (!remoteEl) return;
-    if (!user) {
-      remoteEl.innerHTML = '<p>Please <strong>sign in</strong> to see your personalized Zoom session.</p>';
-      return;
-    }
+    if (!user) { remoteEl.innerHTML = '<p>Please <strong>sign in</strong> to see your personalized Zoom session.</p>'; return; }
+
     const zoomLink  = profile?.zoomLink || '';
     const zoomMeetingNumber = profile?.zoomMeetingNumber || '';
     const zoomPasscode = profile?.zoomPasscode || '';
@@ -166,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>`;
     } else {
       if (!zoomLink) {
-        remoteEl.innerHTML = '<div class="card"><p class="badge">Zoom</p><p>Add your Zoom meeting link in <strong>Account → Your Zoom Meeting Settings</strong>.</p></div>';
+        remoteEl.innerHTML = '<div class="card"><p class="badge">Zoom</p><p>Add your Zoom meeting link via <strong>Account → Manage Zoom Settings</strong>.</p></div>';
         return;
       }
       remoteEl.innerHTML = `
@@ -176,79 +253,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <p>Your personalized Zoom room is ready.</p>
           </div>
           <div class="right">
-            <a href="${zoomLink}" target="_blank" rel="noopener">
-              <button>Open Zoom Meeting</button>
-            </a>
+            <a href="${zoomLink}" target="_blank" rel="noopener"><button>Open Zoom Meeting</button></a>
           </div>
         </div>`;
     }
-  };
-
-  // Auth state changes
-  firebase.auth().onAuthStateChanged(async (user) => {
-    if (user) {
-      // Header badge
-      userBadge.style.display = 'inline-block';
-      userBadge.textContent = user.email;
-
-      // Account area
-      accountLoggedOut.style.display = 'none';
-      accountLoggedIn.style.display = 'block';
-      userEmail.textContent = `Signed in as: ${user.email}`;
-      setMessage('');
-
-      // Load profile
-      let profile = null;
-      try {
-        const snap = await db.collection('profiles').doc(user.uid).get();
-        profile = snap.exists ? snap.data() : {};
-      } catch (err) {
-        console.warn('Failed to load profile:', err);
-      }
-
-      // Populate prefs
-      if (profile) {
-        if (zoomLinkEl && profile.zoomLink) zoomLinkEl.value = profile.zoomLink;
-        if (zoomMeetingNumberEl && profile.zoomMeetingNumber) zoomMeetingNumberEl.value = profile.zoomMeetingNumber;
-        if (zoomPasscodeEl && profile.zoomPasscode) zoomPasscodeEl.value = profile.zoomPasscode;
-        if (zoomDisplayNameEl && profile.zoomDisplayName) zoomDisplayNameEl.value = profile.zoomDisplayName;
-      }
-
-      renderRemote(user, profile);
-    } else {
-      // Header badge
-      userBadge.style.display = 'none';
-      userBadge.textContent = '';
-
-      // Account area
-      accountLoggedOut.style.display = 'block';
-      accountLoggedIn.style.display = 'none';
-
-      renderRemote(null, null);
-    }
-  });
-
-  // Save preferences
-  if (prefsForm) {
-    prefsForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const zoomLink  = zoomLinkEl?.value?.trim() || '';
-      const zoomMeetingNumber = zoomMeetingNumberEl?.value?.trim() || '';
-      const zoomPasscode = zoomPasscodeEl?.value?.trim() || '';
-      const zoomDisplayName = zoomDisplayNameEl?.value?.trim() || '';
-      const user = firebase.auth().currentUser;
-      if (!user) { setMessage('Please sign in.'); return; }
-      try {
-        await db.collection('profiles').doc(user.uid).set(
-          { zoomLink, zoomMeetingNumber, zoomPasscode, zoomDisplayName },
-          { merge: true }
-        );
-        setMessage('Zoom settings saved.');
-        // Re-render remote card
-        renderRemote(user, { zoomLink, zoomMeetingNumber, zoomPasscode, zoomDisplayName });
-      } catch (err) {
-        setMessage(err.message);
-      }
-    });
   }
 });
