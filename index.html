@@ -17,27 +17,31 @@
       width: 100%;
       background: #0f172a;
       color: white;
-      padding: 1rem 2rem;
+      padding: 1rem 1rem;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-start;
       z-index: 1000;
     }
     header h1 {
       font-size: 1.5rem;
       margin: 0;
     }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
     nav a {
       color: white;
       text-decoration: none;
-      margin-left: 1.5rem;
       font-weight: bold;
     }
     main {
       max-width: 960px;
       margin: 5rem auto;
-      padding: 2rem;
+      padding: 1rem;
     }
     section {
       display: none;
@@ -48,6 +52,47 @@
     }
     section.active {
       display: block;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      box-sizing: border-box;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+    }
+
+    @media (min-width: 600px) {
+      header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
     }
   </style>
 </head>
@@ -79,8 +124,14 @@
     </section>
   </main>
 
-  <!-- Modal placeholder -->
-  <div id="authModal" style="display:none;"></div>
+  <div id="authModal" class="modal" onclick="closeAuthModal(event)">
+    <div class="modal-content">
+      <h3>Sign In / Sign Up</h3>
+      <input type="email" placeholder="Email" />
+      <input type="password" placeholder="Password" />
+      <button>Continue</button>
+    </div>
+  </div>
 
   <script>
     const sections = document.querySelectorAll('main section');
@@ -95,7 +146,13 @@
     showSection(location.hash.slice(1) || 'home');
 
     function openAuthModal() {
-      alert("Auth modal triggered (placeholder).");
+      document.getElementById('authModal').style.display = 'flex';
+    }
+
+    function closeAuthModal(e) {
+      if (e.target.id === 'authModal') {
+        document.getElementById('authModal').style.display = 'none';
+      }
     }
   </script>
 </body>
