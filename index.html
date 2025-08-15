@@ -1,168 +1,48 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PLC Automation Hub</title>
-  <link rel="stylesheet" href="styles.css" />
-
-  <!-- Firebase SDK (Compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-  <!-- Site config -->
-  <script src="config.js"></script>
-
-  <script>
-    // TODO: Replace with your Firebase project config from Firebase Console
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-    try { firebase.initializeApp(firebaseConfig); } catch (e) { console.warn('Firebase init warning:', e); }
-  </script>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    header {
+      position: fixed; top: 0; left: 0; width: 100%;
+      background-color: #111; color: white; padding: 1rem;
+      display: flex; justify-content: space-between; z-index: 1000;
+    }
+    main { padding-top: 80px; }
+    section { display: none; padding: 2rem; }
+    section.active { display: block; }
+  </style>
 </head>
 <body>
   <header>
-    <h1>PLC Automation Hub</h1>
+    <div>PLC Automation Hub</div>
     <nav>
-      <a href="#home" data-route="home">Home</a>
-      <a href="#remote" data-route="remote">Remote Work</a>
-      <a href="#account" data-route="account">Account</a>
-      <a href="#contact" data-route="contact">Contact</a>
-      <button id="openAuth" class="ghost-btn">Sign In / Sign Up</button>
-      <div id="userBadge" class="badge" style="display:none;"></div>
+      <a href="#home">Home</a>
+      <a href="#remote">Remote Work</a>
+      <a href="#account">Account</a>
+      <a href="#contact">Contact</a>
     </nav>
   </header>
-
   <main>
-    <section id="home" class="route active hero">
-      <h2>Industrial PLC Automation</h2>
-      <p>Remote PLC programming, troubleshooting, and automation consulting.</p>
-      <div class="cta-row">
-        <a href="#remote" data-route="remote"><button>Book Remote Session</button></a>
-        <button id="openAuthHero" class="ghost-btn">Sign In / Sign Up</button>
-      </div>
-    </section>
-
-    <section id="remote" class="route">
-      <h2>Remote PLC Work</h2>
-      <p>Join your personalized Zoom session for PLC support.</p>
-      <div id="remoteContent" class="card"></div>
-    </section>
-
-    <section id="account" class="route">
-      <h2>Account</h2>
-      <div id="accountLoggedOut" class="card">
-        <p>Please sign in to manage your Zoom meeting settings.</p>
-        <button id="openAuthAccount">Sign In / Sign Up</button>
-      </div>
-
-      <div id="accountLoggedIn" class="card" style="display:none;">
-        <p id="userEmail"></p>
-        <div class="btn-row">
-          <button id="openSettings" class="ghost-btn">Manage Zoom Settings</button>
-          <button id="logoutBtn" class="danger">Logout</button>
-        </div>
-      </div>
-
-      <p id="authMessage" class="msg"></p>
-    </section>
-
-    <section id="contact" class="route">
-      <h2>Contact</h2>
-      <p>Have a project or need help? Reach out.</p>
-      <button id="openContact" class="ghost-btn">Open Contact Form</button>
-    </section>
+    <section id="home" class="active"><h1>Welcome to PLC Automation Hub</h1></section>
+    <section id="remote"><h1>Remote Work</h1><p>Zoom session placeholder</p></section>
+    <section id="account"><h1>Account</h1><p>Only visible when signed in</p></section>
+    <section id="contact"><h1>Contact</h1><p>Contact form appears in modal</p></section>
   </main>
-
-  <footer>
-    <p>© 2025 PLC Automation Hub</p>
-  </footer>
-
-  <!-- MODALS (no inline fields) -->
-
-  <!-- AUTH MODAL -->
-  <div id="authOverlay" class="overlay" style="display:none;"></div>
-  <div id="authModal" class="modal" style="display:none;">
-    <div class="modal-header">
-      <h3>Welcome</h3>
-      <button id="closeAuth" class="icon-btn" aria-label="Close">✕</button>
-    </div>
-    <div class="form-switch center">
-      <button id="showSignup" class="tab tab-active">Sign Up</button>
-      <button id="showLogin" class="tab">Login</button>
-    </div>
-    <div id="authForms">
-      <form id="signupForm" class="card shadow-none">
-        <input type="email" placeholder="Email" required />
-        <input type="password" placeholder="Password" required />
-        <button type="submit">Create Account</button>
-      </form>
-
-      <form id="loginForm" class="card shadow-none" style="display:none;">
-        <input type="email" placeholder="Email" required />
-        <input type="password" placeholder="Password" required />
-        <button type="submit">Log In</button>
-      </form>
-      <div class="center">
-        <button id="forgotPassword" class="link-btn">Forgot password?</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- SETTINGS MODAL (Zoom) -->
-  <div id="settingsOverlay" class="overlay" style="display:none;"></div>
-  <div id="settingsModal" class="modal" style="display:none;">
-    <div class="modal-header">
-      <h3>Zoom Meeting Settings</h3>
-      <button id="closeSettings" class="icon-btn" aria-label="Close">✕</button>
-    </div>
-    <form id="prefsForm" class="card shadow-none">
-      <label>Zoom meeting link</label>
-      <input type="url" id="zoomLink" placeholder="https://zoom.us/j/XXXXXXXXXX" />
-
-      <div class="grid2">
-        <div>
-          <label>Meeting number (for SDK in-browser join)</label>
-          <input type="text" id="zoomMeetingNumber" placeholder="1234567890" />
-        </div>
-        <div>
-          <label>Passcode (if required)</label>
-          <input type="text" id="zoomPasscode" placeholder="passcode" />
-        </div>
-      </div>
-
-      <label>Display name (optional)</label>
-      <input type="text" id="zoomDisplayName" placeholder="e.g., Dustin (PLC)" />
-
-      <button type="submit">Save</button>
-      <p class="hint">
-        Provide your recurring Zoom link. If you add meeting number & passcode and enable Zoom SDK in <code>config.js</code>, clients can join directly in the browser.
-      </p>
-    </form>
-  </div>
-
-  <!-- CONTACT MODAL -->
-  <div id="contactOverlay" class="overlay" style="display:none;"></div>
-  <div id="contactModal" class="modal" style="display:none;">
-    <div class="modal-header">
-      <h3>Contact</h3>
-      <button id="closeContact" class="icon-btn" aria-label="Close">✕</button>
-    </div>
-    <form id="contactForm" class="card shadow-none">
-      <input type="text" id="contactName" placeholder="Name" required />
-      <input type="email" id="contactEmail" placeholder="Email" required />
-      <textarea id="contactMsg" placeholder="Message" required></textarea>
-      <button type="submit">Send</button>
-    </form>
-  </div>
-
-  <script src="script.js"></script>
+  <script>
+    const sections = document.querySelectorAll('section');
+    function showSection(id) {
+      sections.forEach(sec => sec.classList.remove('active'));
+      const el = document.getElementById(id);
+      if (el) el.classList.add('active');
+    }
+    window.addEventListener('hashchange', () => {
+      showSection(location.hash.slice(1) || 'home');
+    });
+    showSection(location.hash.slice(1) || 'home');
+  </script>
 </body>
 </html>
