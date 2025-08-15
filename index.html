@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DHS Automation</title>
 
+  <!-- Firebase compat SDKs (work without bundlers on GitHub Pages) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; overflow-x: hidden; }
@@ -15,6 +19,7 @@
     .brand { font-weight: 800; letter-spacing: .2px; white-space: nowrap; }
     .nav a { color:#e5e7eb; text-decoration: none; font-weight: 600; margin-left: 1rem; }
     .nav a:hover { color: #fff; text-decoration: underline; }
+    #accountLink, #logoutLink { display: none; }
 
     .hero { background: linear-gradient(135deg, #1d4ed8, #0ea5e9); color: #fff; }
     .hero-inner { max-width: 1200px; margin: 0 auto; padding: 3.25rem 1rem; text-align: center; }
@@ -61,13 +66,16 @@
 
     footer { background:#0f172a; color:#fff; text-align:center; padding: 1rem; }
 
-    /* Modal */
+    /* Auth modal */
     .overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 70; display: none; }
     .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; color:#111; width: min(92vw, 440px); padding: 1.25rem; border-radius: 14px; z-index: 80; display: none; box-shadow: 0 24px 80px rgba(2,6,23,.35); }
     .modal h3 { margin: 0 0 .75rem; }
     .modal input { width:100%; padding:.6rem .7rem; margin:.5rem 0; border:1px solid #cbd5e1; border-radius: 10px; font-size: 1rem; }
-    .modal .actions { display:flex; gap:.5rem; justify-content: flex-end; }
+    .modal .actions { display:flex; gap:.5rem; justify-content: space-between; flex-wrap: wrap; }
     .btn.alt { background: transparent; color:#1d4ed8; border:1px solid #93c5fd; }
+    .note { font-size: .9rem; color:#475569; margin-top: .25rem; }
+    .error { color:#b91c1c; margin-top: .25rem; }
+    .ok { color:#166534; margin-top: .25rem; }
   </style>
 </head>
 <body>
@@ -77,8 +85,10 @@
       <nav>
         <a href="#home">Home</a>
         <a href="#remote">Remote Work</a>
+        <a href="#account" id="accountLink">Account</a>
         <a href="#contact">Contact</a>
         <a href="#" id="openAuth">Sign In / Sign Up</a>
+        <a href="#" id="logoutLink">Log Out</a>
       </nav>
     </div>
   </header>
@@ -137,7 +147,14 @@
     <section id="remote" class="route">
       <div class="card">
         <h2>Remote Work</h2>
-        <p>Sign in to schedule or join a Zoom session (coming soon).</p>
+        <p id="remoteMsg">Sign in to schedule or join a Zoom session.</p>
+      </div>
+    </section>
+
+    <section id="account" class="route">
+      <div class="card">
+        <h2>Account</h2>
+        <p id="acctWelcome">Please sign in.</p>
       </div>
     </section>
 
@@ -151,20 +168,38 @@
 
   <footer>© 2025 DHS Automation</footer>
 
-  <!-- Auth modal (UI only) -->
+  <!-- Auth modal -->
   <div id="overlay" class="overlay"></div>
   <div id="authModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <h3 id="authTitle">Sign In / Sign Up</h3>
     <input id="email" type="email" placeholder="Email" autocomplete="email" />
     <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
     <div class="actions">
+      <div>
+        <button class="btn" id="btnSignIn">Sign In</button>
+        <button class="btn alt" id="btnSignUp">Create Account</button>
+      </div>
+      <button class="btn alt" id="btnForgot">Forgot Password</button>
       <button class="btn alt" id="closeAuth">Cancel</button>
-      <button class="btn" id="continueAuth">Continue</button>
     </div>
+    <div id="authMsg" class="note"></div>
   </div>
 
   <script>
-    // SPA routing
+    // 1) Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyC-_sJL0xTUJmiwA6Y7x0WrGAV2dHBprLA",
+      authDomain: "dhsautomation-3a21f.firebaseapp.com",
+      projectId: "dhsautomation-3a21f",
+      storageBucket: "dhsautomation-3a21f.firebasestorage.app",
+      messagingSenderId: "1000122143140",
+      appId: "1:1000122143140:web:57bd9b8cefd1db8dcf7131",
+      measurementId: "G-BGH00GH1TG"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // 2) Simple SPA routing
     const routes = Array.from(document.querySelectorAll('.route'));
     const showRoute = (id) => {
       routes.forEach(r => r.classList.toggle('active', r.id === id));
@@ -173,26 +208,96 @@
     window.addEventListener('hashchange', () => showRoute((location.hash || '#home').slice(1)));
     showRoute((location.hash || '#home').slice(1));
 
-    // Modal controls (UI only)
+    // 3) Auth modal controls
     const overlay = document.getElementById('overlay');
     const authModal = document.getElementById('authModal');
     const openAuth = document.getElementById('openAuth');
     const openAuthHero = document.getElementById('openAuthHero');
     const closeAuth = document.getElementById('closeAuth');
-    const continueAuth = document.getElementById('continueAuth');
+    const btnSignIn = document.getElementById('btnSignIn');
+    const btnSignUp = document.getElementById('btnSignUp');
+    const btnForgot = document.getElementById('btnForgot');
+    const authMsg = document.getElementById('authMsg');
+    const emailEl = document.getElementById('email');
+    const passEl = document.getElementById('password');
 
-    function openModal() { overlay.style.display = 'block'; authModal.style.display = 'block'; }
+    function openModal() { overlay.style.display = 'block'; authModal.style.display = 'block'; authMsg.textContent = ''; }
     function closeModal() { overlay.style.display = 'none'; authModal.style.display = 'none'; }
-
     [openAuth, openAuthHero].forEach(b => b?.addEventListener('click', (e) => { e.preventDefault(); openModal(); }));
     closeAuth.addEventListener('click', (e) => { e.preventDefault(); closeModal(); });
     overlay.addEventListener('click', closeModal);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
-    continueAuth.addEventListener('click', () => {
-      alert('Demo only — connect Firebase to enable real accounts.');
-      closeModal();
+    // 4) Sign In / Sign Up / Forgot
+    btnSignIn.addEventListener('click', async () => {
+      try {
+        await auth.signInWithEmailAndPassword(emailEl.value, passEl.value);
+        authMsg.textContent = 'Signed in successfully.';
+        closeModal();
+        location.hash = '#account';
+      } catch (e) {
+        authMsg.textContent = e.message;
+        authMsg.className = 'error';
+      }
     });
+
+    btnSignUp.addEventListener('click', async () => {
+      try {
+        await auth.createUserWithEmailAndPassword(emailEl.value, passEl.value);
+        authMsg.textContent = 'Account created and signed in.';
+        closeModal();
+        location.hash = '#account';
+      } catch (e) {
+        authMsg.textContent = e.message;
+        authMsg.className = 'error';
+      }
+    });
+
+    btnForgot.addEventListener('click', async () => {
+      try {
+        await auth.sendPasswordResetEmail(emailEl.value);
+        authMsg.textContent = 'Password reset email sent.';
+        authMsg.className = 'ok';
+      } catch (e) {
+        authMsg.textContent = e.message;
+        authMsg.className = 'error';
+      }
+    });
+
+    // 5) Toggle UI on auth state
+    const accountLink = document.getElementById('accountLink');
+    const logoutLink = document.getElementById('logoutLink');
+    const remoteMsg = document.getElementById('remoteMsg');
+    const acctWelcome = document.getElementById('acctWelcome');
+
+    logoutLink.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try { await auth.signOut(); location.hash = '#home'; } catch (e) { console.log(e); }
+    });
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        accountLink.style.display = 'inline';
+        logoutLink.style.display = 'inline';
+        openAuth.style.display = 'none';
+        if (openAuthHero) openAuthHero.style.display = 'none';
+
+        acctWelcome.textContent = 'Signed in as ' + (user.email || 'your account');
+        remoteMsg.textContent = 'Hi ' + (user.email || '') + ', your Zoom session tools will appear here.';
+      } else {
+        accountLink.style.display = 'none';
+        logoutLink.style.display = 'none';
+        openAuth.style.display = 'inline';
+        if (openAuthHero) openAuthHero.style.display = 'inline-block';
+
+        acctWelcome.textContent = 'Please sign in.';
+        remoteMsg.textContent = 'Sign in to schedule or join a Zoom session.';
+      }
+    });
+
+    // 6) IMPORTANT: Add your site origin to Firebase Authorized Domains
+    // In Firebase Console → Authentication → Settings → Authorized domains, add:
+    //   dunclin.github.io
   </script>
 </body>
 </html>
