@@ -20,13 +20,12 @@ exports.zoomSignature = functions.https.onRequest((req, res) => {
     const iat = Math.floor(Date.now() / 1000) - 30;
     const exp = iat + 60 * 2;
 
-    const oHeader = { alg: 'HS256', typ: 'JWT' };
+    const oHeader = { alg: 'HS256', typ: 'JWT', };
     const oPayload = {
       sdkKey: sdkKey,
       mn: meetingNumber,
       role: Number(role) || 0,
-      iat,
-      exp,
+      iat, exp,
       appKey: sdkKey,
       tokenExp: exp
     };

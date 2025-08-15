@@ -14,6 +14,9 @@ header {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 40;
 }
 
 header h1 { margin: 0; font-size: 1.25rem; }
@@ -37,6 +40,10 @@ nav { display: flex; align-items: center; gap: 0.5rem; }
 .cta-row { margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
 
 section { padding: 2rem 1rem; }
+
+/* SPA routing: only active route visible */
+.route { display: none; }
+.route.active { display: block; }
 
 /* Cards and forms */
 .card {

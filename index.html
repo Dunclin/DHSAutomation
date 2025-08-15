@@ -31,94 +31,95 @@
   <header>
     <h1>PLC Automation Hub</h1>
     <nav>
-      <a href="#home">Home</a>
-      <a href="#remote">Remote Work</a>
-      <a href="#account">Account</a>
-      <a href="#contact">Contact</a>
+      <a href="#home" data-route="home">Home</a>
+      <a href="#remote" data-route="remote">Remote Work</a>
+      <a href="#account" data-route="account">Account</a>
+      <a href="#contact" data-route="contact">Contact</a>
       <button id="openAuth" class="ghost-btn">Sign In / Sign Up</button>
       <div id="userBadge" class="badge" style="display:none;"></div>
     </nav>
   </header>
 
-  <section id="home" class="hero">
-    <h2>Industrial PLC Automation</h2>
-    <p>Remote PLC programming, troubleshooting, and automation consulting.</p>
-    <div class="cta-row">
-      <a href="#remote"><button>Book Remote Session</button></a>
-      <button id="openAuthHero" class="ghost-btn">Sign In / Sign Up</button>
-    </div>
-  </section>
+  <!-- ROUTES -->
+  <main>
+    <section id="home" class="route active hero">
+      <h2>Industrial PLC Automation</h2>
+      <p>Remote PLC programming, troubleshooting, and automation consulting.</p>
+      <div class="cta-row">
+        <a href="#remote" data-route="remote"><button>Book Remote Session</button></a>
+        <button id="openAuthHero" class="ghost-btn">Sign In / Sign Up</button>
+      </div>
+    </section>
 
-  <section id="remote">
-    <h2>Remote PLC Work</h2>
-    <p>Join your personalized Zoom session for PLC support.</p>
+    <section id="remote" class="route">
+      <h2>Remote PLC Work</h2>
+      <p>Join your personalized Zoom session for PLC support.</p>
+      <div id="remoteContent" class="card"></div>
+    </section>
 
-    <!-- Per-user Zoom card -->
-    <div id="remoteContent" class="card"></div>
-  </section>
+    <section id="account" class="route">
+      <h2>Account</h2>
 
-  <section id="account">
-    <h2>Account</h2>
+      <!-- When NOT signed in -->
+      <div id="accountLoggedOut" class="card">
+        <p>Please sign in to manage your Zoom meeting settings.</p>
+        <button id="openAuthAccount">Sign In / Sign Up</button>
+      </div>
 
-    <!-- When NOT signed in -->
-    <div id="accountLoggedOut" class="card">
-      <p>Please sign in to manage your Zoom meeting settings.</p>
-      <button id="openAuthAccount">Sign In / Sign Up</button>
-    </div>
+      <!-- When SIGNED IN -->
+      <div id="accountLoggedIn" style="display:none;">
+        <div id="userInfo" class="card">
+          <p id="userEmail"></p>
+          <div class="btn-row">
+            <button id="logoutBtn" class="danger">Logout</button>
+          </div>
+        </div>
 
-    <!-- When SIGNED IN -->
-    <div id="accountLoggedIn" style="display:none;">
-      <div id="userInfo" class="card">
-        <p id="userEmail"></p>
-        <div class="btn-row">
-          <button id="logoutBtn" class="danger">Logout</button>
+        <!-- Zoom preferences -->
+        <div id="prefsCard" class="card">
+          <h3>Your Zoom Meeting Settings</h3>
+          <form id="prefsForm">
+            <div class="grid2">
+              <div>
+                <label>Zoom meeting link</label>
+                <input type="url" id="zoomLink" placeholder="https://zoom.us/j/XXXXXXXXXX" />
+              </div>
+              <div>
+                <label>Display name (optional)</label>
+                <input type="text" id="zoomDisplayName" placeholder="e.g., Dustin (PLC)" />
+              </div>
+            </div>
+            <div class="grid2">
+              <div>
+                <label>Meeting number (for SDK in-browser join)</label>
+                <input type="text" id="zoomMeetingNumber" placeholder="1234567890" />
+              </div>
+              <div>
+                <label>Passcode (if required)</label>
+                <input type="text" id="zoomPasscode" placeholder="passcode" />
+              </div>
+            </div>
+            <button type="submit">Save</button>
+            <p class="hint">
+              Save your recurring Zoom link. If you also provide meeting number & passcode and enable the Zoom SDK in <code>config.js</code>, clients can join directly in the browser.
+            </p>
+          </form>
         </div>
       </div>
 
-      <!-- Zoom preferences -->
-      <div id="prefsCard" class="card">
-        <h3>Your Zoom Meeting Settings</h3>
-        <form id="prefsForm">
-          <div class="grid2">
-            <div>
-              <label>Zoom meeting link</label>
-              <input type="url" id="zoomLink" placeholder="https://zoom.us/j/XXXXXXXXXX" />
-            </div>
-            <div>
-              <label>Display name (optional)</label>
-              <input type="text" id="zoomDisplayName" placeholder="e.g., Dustin (PLC)" />
-            </div>
-          </div>
-          <div class="grid2">
-            <div>
-              <label>Meeting number (for SDK in-browser join)</label>
-              <input type="text" id="zoomMeetingNumber" placeholder="1234567890" />
-            </div>
-            <div>
-              <label>Passcode (if required)</label>
-              <input type="text" id="zoomPasscode" placeholder="passcode" />
-            </div>
-          </div>
-          <button type="submit">Save</button>
-          <p class="hint">
-            Save your recurring Zoom link. If you also provide meeting number & passcode and enable the Zoom SDK in <code>config.js</code>, clients can join directly in the browser.
-          </p>
-        </form>
-      </div>
-    </div>
+      <p id="authMessage" class="msg"></p>
+    </section>
 
-    <p id="authMessage" class="msg"></p>
-  </section>
-
-  <section id="contact">
-    <h2>Contact</h2>
-    <form id="contactForm" class="card">
-      <input type="text" placeholder="Name" required />
-      <input type="email" placeholder="Email" required />
-      <textarea placeholder="Message" required></textarea>
-      <button type="submit">Send</button>
-    </form>
-  </section>
+    <section id="contact" class="route">
+      <h2>Contact</h2>
+      <form id="contactForm" class="card">
+        <input type="text" placeholder="Name" required />
+        <input type="email" placeholder="Email" required />
+        <textarea placeholder="Message" required></textarea>
+        <button type="submit">Send</button>
+      </form>
+    </section>
+  </main>
 
   <footer>
     <p>© 2025 PLC Automation Hub</p>

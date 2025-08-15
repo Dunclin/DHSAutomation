@@ -1,5 +1,16 @@
 // Ensure DOM loaded
 document.addEventListener('DOMContentLoaded', () => {
+  // Simple SPA routing: show one section at a time based on hash
+  const routes = Array.from(document.querySelectorAll('.route'));
+  const setRoute = (name) => {
+    routes.forEach(sec => sec.classList.toggle('active', sec.id === name));
+    // scroll to top of content on route change
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+  const initial = (location.hash || '#home').replace('#', '');
+  setRoute(initial);
+  window.addEventListener('hashchange', () => setRoute((location.hash || '#home').replace('#', '')));
+
   // Contact Form
   const contactForm = document.getElementById('contactForm');
   if (contactForm) {
@@ -85,6 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setMessage(`Account created: ${cred.user.email}`);
         e.target.reset();
         closeModal();
+        // Navigate to account page
+        location.hash = '#account';
       } catch (err) {
         alert(err.message);
       }
@@ -102,6 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setMessage(`Logged in: ${cred.user.email}`);
         e.target.reset();
         closeModal();
+        // Navigate to account page
+        location.hash = '#account';
       } catch (err) {
         alert(err.message);
       }
@@ -114,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         await firebase.auth().signOut();
         setMessage('Logged out.');
+        location.hash = '#home';
       } catch (err) {
         setMessage(err.message);
       }
