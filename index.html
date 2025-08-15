@@ -3,201 +3,82 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>DHS Automation</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js"></script>
+  <title>DHS Automation</title>
   <style>
-html, body { overflow-x: hidden; }
-    body {
+    * {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f6f9;
-    }
-    header {
-      position: sticky;
-      top: 0;
-      width: 100%;
-      background: #0f172a;
-      color: white;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      align-items: flex-start;
-      z-index: 1000;
-    }
-    header h1 { margin: 0; font-size: 1.5rem; }
-    nav { display: flex; flex-wrap: wrap; gap: 1rem; flex-shrink: 0; }
-    nav a {
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    nav a#accountLink { display: none; }
-    nav a#logoutLink { display: none; cursor: pointer; }
-
-    main {
-      max-width: 960px;
-      margin: 5rem auto;
-      padding: 1rem;
-    }
-    section {
-      display: none;
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    }
-    section.active { display: block; }
-    section#account { display: none; }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-    }
-
-    .modal-content {
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 400px;
+      padding: 0;
       box-sizing: border-box;
     }
-
-    input {
+    html, body {
       width: 100%;
-      padding: 0.5rem;
-      margin-top: 1rem;
+      overflow-x: hidden;
+      font-family: Arial, sans-serif;
+      background-color: #f3f6f9;
     }
-
-    button {
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: #0d1b2a;
+      color: white;
+      padding: 1rem;
+      z-index: 1000;
     }
-
-    @media (min-width: 600px) {
-      header {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1rem;
+    }
+    .container {
+      padding-top: 100px;
+      max-width: 1200px;
+      margin: auto;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    @media (max-width: 768px) {
+      nav {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
       }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>DHS Automation</h1>
     <nav>
-      <a href="#home">Home</a>
-      <a href="#remote">Remote Work</a>
-      <a href="#account" id="accountLink">Account</a>
-      <a href="#contact">Contact</a>
-      <a href="#" onclick="openAuthModal()" id="loginLink">Sign In / Sign Up</a>
-      <a id="logoutLink" onclick="logout()">Log Out</a>
+      <div><strong>DHS Automation</strong></div>
+      <div class="nav-links">
+        <a href="#home" style="color:white;">Home</a>
+        <a href="#remote" style="color:white;">Remote Work</a>
+        <a href="#contact" style="color:white;">Contact</a>
+        <a href="#login" style="color:white;">Sign In / Sign Up</a>
+      </div>
     </nav>
   </header>
-
-  <main>
-    <section id="home" class="active">
+  <main class="container">
+    <div class="card">
       <h2>Industrial PLC Automation</h2>
       <p>Remote PLC programming, troubleshooting, and automation consulting.</p>
-    </section>
-    <section id="remote">
-      <h2>Remote Work</h2>
-    </section>
-    <section id="account">
-      <h2>Account</h2>
-      <p>Welcome! You're signed in.</p>
-    </section>
-    <section id="contact">
-      <h2>Contact</h2>
-    </section>
-  </main>
-
-  <div id="authModal" class="modal" onclick="closeAuthModal(event)">
-    <div class="modal-content">
-      <h3>Sign In / Sign Up</h3>
-      <input id="emailInput" type="email" placeholder="Email" />
-      <input id="passwordInput" type="password" placeholder="Password" />
-      <button onclick="signInOrSignUp()">Continue</button>
     </div>
-  </div>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      appId: "YOUR_APP_ID"
-    };
-
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-
-    const sections = document.querySelectorAll('main section');
-    const accountLink = document.getElementById('accountLink');
-    const loginLink = document.getElementById('loginLink');
-    const logoutLink = document.getElementById('logoutLink');
-    const accountSection = document.getElementById('account');
-
-    function showSection(id) {
-      sections.forEach(s => s.classList.remove('active'));
-      const el = document.getElementById(id);
-      if (el) el.classList.add('active');
-    }
-
-    function openAuthModal() {
-      document.getElementById('authModal').style.display = 'flex';
-    }
-
-    function closeAuthModal(e) {
-      if (e.target.id === 'authModal') {
-        document.getElementById('authModal').style.display = 'none';
-      }
-    }
-
-    function signInOrSignUp() {
-      const email = document.getElementById('emailInput').value;
-      const password = document.getElementById('passwordInput').value;
-      auth.signInWithEmailAndPassword(email, password)
-        .then(() => document.getElementById('authModal').style.display = 'none')
-        .catch(() => {
-          auth.createUserWithEmailAndPassword(email, password)
-            .then(() => document.getElementById('authModal').style.display = 'none')
-            .catch(err => alert(err.message));
-        });
-    }
-
-    function logout() {
-      auth.signOut();
-    }
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        accountLink.style.display = 'inline';
-        accountSection.style.display = 'block';
-        loginLink.style.display = 'none';
-        logoutLink.style.display = 'inline';
-      } else {
-        accountLink.style.display = 'none';
-        accountSection.style.display = 'none';
-        loginLink.style.display = 'inline';
-        logoutLink.style.display = 'none';
-      }
-    });
-
-    window.addEventListener('hashchange', () => {
-      showSection(location.hash.slice(1) || 'home');
-    });
-    showSection(location.hash.slice(1) || 'home');
-  </script>
+  </main>
 </body>
 </html>
